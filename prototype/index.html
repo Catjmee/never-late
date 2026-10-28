@@ -772,22 +772,43 @@ h1, h2 { text-wrap: balance; }
     const st = S.cal;
     const planned = EVENTS.filter((e) => st.planned[e.id]).length;
     const dayEvents = EVENTS.filter((e) => e.day === st.day && (!st.onlyOpen || !st.planned[e.id]));
-    const d = DAYS[st.day];
+    const mode = st.mode || 'week', month = mode === 'month', d = DAYS[st.day];
+    const modeLabel = { week: 'Week', month: 'Month', year: 'Year' }[mode];
+    // year view: one tile per month; only late Oct and early Nov have synced events in the demo
+    const monthEvents = (m) => EVENTS.filter((e) => (m === 9 ? e.day <= 1 : m === 10 ? e.day >= 2 : false));
+    const yearGrid = `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((n, m) => {
+      const evs = monthEvents(m), done = evs.filter((e) => st.planned[e.id]).length, past = m < 9;
+      const inner = `<span style="font-weight:700;color:${past ? 'var(--muted)' : 'var(--fg)'}">${n}</span><span class="small" style="font-size:13px">${evs.length ? `${evs.length} events · ${done} planned` : past ? 'Past' : 'Nothing yet'}</span>${evs.length ? `<span class="bar" aria-hidden="true" style="height:4px;margin-top:4px"><span style="width:${Math.round(done / evs.length * 100)}%"></span></span>` : ''}`;
+      return evs.length ? `<button class="card" data-act="calYearPick" data-n="${m}" style="padding:12px;gap:2px;text-align:left;min-height:84px;border:1.5px solid ${m === 10 ? 'var(--accent)' : 'transparent'}">${inner}</button>`
+        : `<div class="card" style="padding:12px;gap:2px;min-height:84px;background:var(--bar)">${inner}</div>`;
+    }).join('')}</div>`;
+    // month grid, Monday first, 27 Oct to 30 Nov so the demo's Thu 30 Oct lines up; only the synced week (DAYS) carries events
+    const cells = Array.from({ length: 35 }, (_, i) => { const dt = new Date(2025, 9, 27 + i); const n = dt.getDate(), m = dt.getMonth(); const idx = m === 9 ? (n === 30 ? 0 : n === 31 ? 1 : -1) : m === 10 && n <= 5 ? n + 1 : -1; return { n, m, idx }; });
+    const dots = (i) => EVENTS.filter((e) => e.day === i).map((e) => st.planned[e.id] ? '<span style="width:6px;height:6px;border-radius:999px;background:var(--good)"></span>' : '<span style="width:6px;height:6px;border-radius:999px;border:1.5px solid var(--muted)"></span>').join('');
+    const monthGrid = `<div class="card" style="padding:12px;gap:6px"><div aria-hidden="true" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center;font-size:12px;font-weight:600;color:var(--muted)">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((x) => `<span>${x}</span>`).join('')}</div>
+      <div role="group" aria-label="Choose a day in November" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px">${cells.map((c) => {
+        const on = c.idx === st.day, faded = c.m !== 10;
+        const inner = `<span class="num" style="font-size:15px;font-weight:${c.idx >= 0 ? 700 : 500};color:${faded ? 'var(--muted)' : 'var(--fg)'}">${c.n}</span><span aria-hidden="true" style="display:flex;gap:2px;height:6px">${c.idx >= 0 ? dots(c.idx) : ''}</span>`;
+        return c.idx >= 0 ? `<button aria-pressed="${on}" aria-label="${c.n} ${c.m === 9 ? 'October' : 'November'}, ${EVENTS.filter((e) => e.day === c.idx).length} events" data-act="calDay" data-n="${c.idx}" style="min-height:48px;border-radius:12px;border:1.5px solid ${on ? 'var(--accent)' : 'transparent'};background:${on ? 'var(--accent-soft)' : 'transparent'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">${inner}</button>`
+          : `<span style="min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">${inner}</span>`;
+      }).join('')}</div><p class="small" style="padding:4px 4px 0">Events sync a week ahead. Later dates fill in as they’re added to Outlook or Teams.</p></div>`;
     return { body: `
       <header class="stack">
-        <div class="stack-sm"><p class="sub">Next 7 days</p><h1 class="title">Your week</h1></div>
+        <div class="top" style="align-items:flex-end;position:relative"><div class="stack-sm"><p class="sub">${{ week: 'Next 7 days', month: 'November', year: 'At a glance' }[mode]}</p><h1 class="title">${{ week: 'Your week', month: 'Your month', year: 'Your year' }[mode]}</h1></div>
+          <button class="chip" aria-haspopup="true" aria-expanded="${!!st.modeMenu}" aria-controls="mode-menu" aria-label="Calendar view: ${modeLabel}. Change view" data-act="calModeMenu" style="flex:0 0 auto">${ic.cal}${modeLabel}${(st.modeMenu ? ic.up : ic.down).replace(/width="20" height="20"/, 'width="16" height="16"')}</button>
+          ${st.modeMenu ? `<div id="mode-menu" role="group" aria-label="Calendar view" style="position:absolute;right:0;top:calc(100% + 8px);z-index:8;width:180px;background:var(--raised);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:4px">${[['week', 'Week'], ['month', 'Month'], ['year', 'Year']].map(([k, l]) => `<button aria-pressed="${mode === k}" data-act="calMode" data-k="${k}" style="min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-radius:12px;font-weight:${mode === k ? 700 : 500};border:1.5px solid ${mode === k ? 'var(--accent)' : 'transparent'};background:${mode === k ? 'var(--accent-soft)' : 'transparent'}">${l}${mode === k ? `<span style="color:var(--accent)">${ic.tick}</span>` : ''}</button>`).join('')}</div>` : ''}</div>
         <div class="inset" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
           <div class="bar" style="flex:1 1 auto" aria-hidden="true"><span style="width:${Math.round(planned / EVENTS.length * 100)}%"></span></div>
           <span class="num" style="font-size:15px;font-weight:600">${planned} of ${EVENTS.length} planned</span>
         </div>
       </header>
-      <div role="group" aria-label="Choose a day" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px">${DAYS.map((x, i) => {
+      ${mode === 'year' ? yearGrid : month ? monthGrid : `<div role="group" aria-label="Choose a day" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px">${DAYS.map((x, i) => {
         const evs = EVENTS.filter((e) => e.day === i), open = evs.filter((e) => !st.planned[e.id]).length, on = i === st.day;
         return `<button aria-pressed="${on}" aria-label="${x[0]} ${x[1]} ${MONTH(x[1])}, ${evs.length} events, ${open} not planned" data-act="calDay" data-n="${i}" style="min-height:72px;border-radius:16px;border:1.5px solid ${on ? 'var(--accent)' : 'transparent'};background:${on ? 'var(--accent-soft)' : 'var(--card)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">
           <span style="font-size:12px;font-weight:600;color:var(--muted)">${x[0]}</span><span class="num" style="font-size:18px;font-weight:700">${x[1]}</span>
           <span aria-hidden="true" style="display:flex;gap:3px;height:8px;align-items:center">${evs.map((e) => st.planned[e.id] ? '<span style="width:6px;height:6px;border-radius:999px;background:var(--good)"></span>' : '<span style="width:6px;height:6px;border-radius:999px;border:1.5px solid var(--muted)"></span>').join('')}</span>
-        </button>`; }).join('')}</div>
-      <div class="top"><h2 class="h2">${d[2] ? d[2] + ', ' : ''}${d[0]} ${d[1]} ${MONTH(d[1])}</h2><button class="pill" style="min-height:44px;font-size:14px;padding:0 12px;white-space:nowrap;flex:0 0 auto" aria-pressed="${st.onlyOpen}" data-act="calOnly">${st.onlyOpen ? ic.tick : ''}Not planned</button></div>
+        </button>`; }).join('')}</div>`}
+${mode === 'year' ? '' : `      <div class="top"><h2 class="h2">${d[2] ? d[2] + ', ' : ''}${d[0]} ${d[1]} ${MONTH(d[1])}</h2><button class="pill" style="min-height:44px;font-size:14px;padding:0 12px;white-space:nowrap;flex:0 0 auto" aria-pressed="${st.onlyOpen}" data-act="calOnly">${st.onlyOpen ? ic.tick : ''}Not planned</button></div>
       <ul class="stack" style="gap:10px">${dayEvents.length ? dayEvents.map((e) => {
         const pk = st.planned[e.id];
         return `<li><button class="link-card" data-act="calOpen" data-k="${e.id}" style="align-items:flex-start">
@@ -799,7 +820,7 @@ h1, h2 { text-wrap: balance; }
                  : `<span class="status" style="font-size:14px;color:var(--soft)">${I('<circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>', 16, 2.2)}Not planned yet${e.isNew ? ' · new venue' : ''}</span>`}
           </span>
           <span style="color:var(--muted);padding-top:2px">${ic.chev}</span>
-        </button></li>`; }).join('') : `<li class="card" style="align-items:center;text-align:center"><p class="sub">${st.onlyOpen ? 'Everything on this day is planned.' : 'Nothing on this day.'}</p></li>`}</ul>
+        </button></li>`; }).join('') : `<li class="card" style="align-items:center;text-align:center"><p class="sub">${st.onlyOpen ? 'Everything on this day is planned.' : 'Nothing on this day.'}</p></li>`}</ul>`}
       <button class="btn btn-dashed" data-act="quickAdd">${ic.plus}Add an event from a text message</button>
       <p class="small" style="text-align:center">Events come from Outlook and Teams. Only the ones you plan are saved.</p>` };
   }
@@ -952,6 +973,9 @@ h1, h2 { text-wrap: balance; }
   const acts = {
     subToggle: (d) => { S.subDone[d.k] = !S.subDone[d.k]; },
     obToggle: (d) => { S.ob.sel[d.k] = !S.ob.sel[d.k]; },
+    calModeMenu: () => { S.cal.modeMenu = !S.cal.modeMenu; },
+    calMode: (d) => { S.cal.mode = d.k; S.cal.modeMenu = false; },
+    calYearPick: (d) => { S.cal.mode = 'month'; S.cal.day = +d.n === 9 ? 0 : 2; },
     calDay: (d) => { S.cal.day = +d.n; },
     calOnly: () => { S.cal.onlyOpen = !S.cal.onlyOpen; },
     calOpen: (d) => { S.cal.open = d.k; S.cal.pick = 'default'; go('event'); return false; },
