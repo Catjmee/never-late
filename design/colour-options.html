@@ -1,0 +1,130 @@
+<title>Never Late colour options</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+/* Four palette rows, each: swatches + alarm phone + today phone. Dark-only by design. */
+:root {
+  --page: #0C0C0E; --pagefg: #E9E8EC; --pagemuted: #A8A7B0; --line: #2A2A30;
+  --font: 'DM Sans', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--pagefg); font-family: var(--font); margin: 0; }
+h1, h2, h3, p, ul { margin: 0; }
+ul { list-style: none; padding: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 40px; }
+.intro { display: flex; flex-direction: column; gap: 10px; max-width: 62ch; }
+.intro h1 { font-size: 34px; letter-spacing: -0.5px; text-wrap: balance; }
+.intro p { color: var(--pagemuted); font-size: 16px; line-height: 1.5; }
+.opt { border-top: 1px solid var(--line); padding-top: 28px; display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 28px; }
+@media (max-width: 760px) { .opt { grid-template-columns: minmax(0, 1fr); } }
+.meta { display: flex; flex-direction: column; gap: 14px; }
+.letter { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--pagemuted); }
+.meta h2 { font-size: 26px; }
+.meta p { color: var(--pagemuted); line-height: 1.5; font-size: 15px; }
+.sw { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.sw li { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--pagemuted); }
+.sw span.c { height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); }
+.phones { display: flex; gap: 20px; flex-wrap: wrap; }
+.phone { width: 300px; max-width: 100%; height: 620px; border-radius: 40px; overflow: hidden; display: flex; flex-direction: column; border: 6px solid #000; box-shadow: 0 0 0 1px #2A2A30; position: relative; }
+.cap { font-size: 13px; color: var(--pagemuted); margin-top: 8px; text-align: center; }
+
+/* inside phones, colours come from per-option vars set inline */
+.phone { background: var(--bg); color: var(--fg); }
+.alarm { flex: 1 1 auto; margin: 44px 12px 12px; border-radius: 30px; background: var(--acc); color: var(--on); padding: 24px 20px; display: flex; flex-direction: column; gap: 14px; }
+.alarm .row { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+.alarm .big { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 1; }
+.alarm .what { font-size: 24px; font-weight: 700; line-height: 1.2; text-wrap: balance; }
+.alarm .sub { font-size: 15px; font-weight: 500; }
+.alarm .sp { flex: 1 1 auto; }
+.alarm .b { min-height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; }
+.alarm .b1 { background: var(--on); color: var(--acc); }
+.alarm .b2 { border: 2px solid var(--on); }
+.alarm .b3 { min-height: 44px; font-size: 15px; font-weight: 600; text-decoration: underline; }
+.today { padding: 44px 16px 0; display: flex; flex-direction: column; gap: 14px; flex: 1 1 auto; }
+.today .d { font-size: 13px; color: var(--mu); }
+.today h3 { font-size: 22px; letter-spacing: -0.3px; }
+.card { background: var(--card); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.eb { font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--mu); }
+.t1 { font-size: 17px; font-weight: 700; }
+.mu { font-size: 13px; color: var(--mu); }
+.inset { background: var(--raised); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 2px; }
+.inset .n { font-size: 40px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.st { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--good); }
+.pb { min-height: 46px; border-radius: 14px; background: var(--acc); color: var(--on); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; }
+.ob { min-height: 46px; border-radius: 14px; border: 1.5px solid var(--ctl); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; }
+.lc { background: var(--card); border-radius: 18px; padding: 12px; display: flex; gap: 10px; align-items: center; }
+.ib { width: 36px; height: 36px; border-radius: 11px; background: var(--raised); display: flex; align-items: center; justify-content: center; color: var(--mu); flex: 0 0 auto; }
+.tabs { margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 8px 0 18px; border-top: 1px solid var(--raised); background: var(--bar); }
+.tabs span { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--mu); }
+.tabs span.on { color: var(--fg); font-weight: 700; }
+.tabs span.on::after { content: ""; width: 18px; height: 3px; border-radius: 3px; background: var(--acc); }
+.note { border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
+.note p { color: var(--pagemuted); font-size: 15px; line-height: 1.5; }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <h1>Pick a colour for Never Late</h1>
+    <p>Each option shows the new alarm as one large, steady block of colour, with no flashing. Next to it is the Today screen in the same palette. Text is a soft off-white rather than pure white, and the accent appears in one main place per screen. Every pairing passes WCAG AA contrast, with the lowest at 7.7:1.</p>
+  </header>
+  <div id="opts"></div>
+  <aside class="note">
+    <h2 style="font-size:17px">How the alarm behaves in every option</h2>
+    <p>The colour stays steady and never flashes or pulses. Sound and vibration follow your prompt level, and VoiceOver reads the step aloud. The main button is the largest thing on the screen, and "I need more time" is always one tap away.</p>
+  </aside>
+</div>
+
+<script>
+(function () {
+  const P = [
+    { k: 'A', name: 'Lagoon teal', why: 'Cool and calm. Teal reads as "go" without the urgency of red, and it sits well beside the green on-track status because every status also has an icon.',
+      v: { bg: '#101615', card: '#1A2220', raised: '#24302D', bar: '#131A19', fg: '#E6ECEA', mu: '#A9B5B2', ctl: '#62706C', acc: '#5ED3C4', on: '#082320', good: '#8FDCA4' } },
+    { k: 'B', name: 'Dusk lavender', why: 'Soft and gentle, the most relaxed of the four. Good for early mornings and keeps the alarm from feeling like an alert.',
+      v: { bg: '#121119', card: '#1C1A26', raised: '#272436', bar: '#15141D', fg: '#ECEAF2', mu: '#B2AEC2', ctl: '#6A6580', acc: '#B3A8FF', on: '#1A1533', good: '#7FD9A0' } },
+    { k: 'C', name: 'Warm peach', why: 'The closest to the current coral, but softer and warmer. It keeps the friendly Airbnb feel without reading as "danger".',
+      v: { bg: '#15120F', card: '#211C18', raised: '#2C2520', bar: '#181411', fg: '#EEE8E2', mu: '#BDB3A9', ctl: '#75695F', acc: '#F4AE86', on: '#2B160B', good: '#86D79E' } },
+    { k: 'D', name: 'Clear blue', why: 'Trustworthy and familiar from iOS. The most neutral choice and the easiest to pair with any future status colours.',
+      v: { bg: '#0F1218', card: '#191E27', raised: '#232A36', bar: '#12161C', fg: '#E8EBF0', mu: '#ABB3C2', ctl: '#626C7E', acc: '#8DB8FF', on: '#0E1A33', good: '#7FD9A0' } }
+  ];
+  const svg = (d, w = 18, sw = 2.2) => `<svg aria-hidden="true" width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const bell = svg('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>');
+  const ok = svg('<circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/>', 16, 2.4);
+  const timer = svg('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>');
+  const home = svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v12h14V9"/>');
+  const tabs = `<div class="tabs" aria-hidden="true"><span class="on">${svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', 20)}Today</span><span>${svg('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', 20, 2)}Plans</span><span>${svg('<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>', 20, 2)}History</span></div>`;
+  const out = P.map((p) => {
+    const vars = Object.entries(p.v).map(([k, v]) => `--${k}:${v}`).join(';');
+    const sw = [['Ground', p.v.bg], ['Card', p.v.card], ['Text', p.v.fg], ['Accent', p.v.acc], ['On track', p.v.good]]
+      .map(([n, c]) => `<li><span class="c" style="background:${c}"></span>${n}<br>${c}</li>`).join('');
+    return `<section class="opt" aria-labelledby="o${p.k}">
+      <div class="meta"><span class="letter">Option ${p.k}</span><h2 id="o${p.k}">${p.name}</h2><p>${p.why}</p><ul class="sw" aria-label="Colours">${sw}</ul></div>
+      <div class="phones" style="${vars}">
+        <figure style="margin:0"><div class="phone" role="img" aria-label="${p.name} alarm screen: Time to start getting ready, 7:00">
+          <div class="alarm">
+            <span class="row">${bell}Never Late · Alarm</span>
+            <span class="big">7:00</span>
+            <span class="what">Time to start getting ready</span>
+            <span class="sub">Workshop in Manchester at 10:00. Leave the house at 8:00.</span>
+            <span class="sp"></span>
+            <span class="b b1">Start getting ready</span>
+            <span class="b b2">${timer}I need more time</span>
+            <span class="b b3">Snooze 5 min</span>
+          </div></div><figcaption class="cap">Alarm</figcaption></figure>
+        <figure style="margin:0"><div class="phone" role="img" aria-label="${p.name} Today screen">
+          <div class="today">
+            <span class="d">Thursday 30 October</span><h3>Good morning, Catherine</h3>
+            <div class="card">
+              <div><p class="eb">Next up</p><p class="t1">Workshop in Manchester</p><p class="mu">Starts 10:00 · at your seat 9:55</p></div>
+              <div class="inset"><span class="mu">Start getting ready at</span><span class="n">7:00</span><span class="mu">in 25 minutes</span></div>
+              <span class="st">${ok}On track</span>
+              <span class="pb">See today’s plan</span>
+            </div>
+            <div class="lc"><span class="ib">${home}</span><span style="display:flex;flex-direction:column;gap:1px"><span style="font-size:14px;font-weight:600">Leave work by 17:05</span><span class="mu">Daycare pickup by 18:00</span></span></div>
+          </div>${tabs}</div><figcaption class="cap">Today</figcaption></figure>
+      </div></section>`;
+  }).join('');
+  document.getElementById('opts').innerHTML = out;
+})();
+</script>

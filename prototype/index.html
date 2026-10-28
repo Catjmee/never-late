@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Never Late</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<style>
+/* One-column phone app: scrolling view + fixed bottom bar. Deliberately dark-only. Palette: Lagoon teal. */
+:root {
+  --bg: #101615;
+  --card: #1A2220;
+  --raised: #24302D;
+  --bar: #131A19;
+  --line: #2E3A37;
+  --control: #788884;
+  --fg: #E6ECEA;
+  --muted: #A9B5B2;
+  --soft: #CBD5D2;
+  --accent: #5ED3C4;
+  --accent-soft: #1D3A36;
+  --on-accent: #082320;
+  --good: #8FDCA4;
+  --warn: #FFC27A;
+  --info: #9CC2FF;
+  --font: 'DM Sans', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+* { box-sizing: border-box; }
+button, input { font-family: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: 0.35; cursor: default; }
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--info); outline-offset: 2px; }
+h1:focus { outline: none; }
+h1, h2, p, ol, ul { margin: 0; }
+ol, ul { list-style: none; padding: 0; }
+h1, h2 { text-wrap: balance; }
+.num { font-variant-numeric: tabular-nums; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+#app { min-height: 100%; display: flex; flex-direction: column; max-width: 520px; margin: 0 auto; position: relative; }
+.view { flex: 1 0 auto; padding-block: 20px 28px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 24px; }
+.view::-webkit-scrollbar { display: none; }
+.view.enter { animation: slide 220ms ease-out; }
+@keyframes slide { from { opacity: 0.4; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .view.enter, .sheet, .toast { animation: none !important; } .carousel { scroll-behavior: auto !important; } }
+
+.tabbar { position: sticky; bottom: 0; z-index: 5; flex: 0 0 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--bar); border-top: 1px solid var(--raised); padding: 6px max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px)); }
+.tab { min-height: 52px; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.tab[aria-current="page"] { color: var(--fg); font-weight: 700; }
+.tab[aria-current="page"]::after { content: ""; width: 18px; height: 3px; border-radius: 3px; background: var(--accent); }
+.footer { position: sticky; bottom: var(--tabh, 0px); z-index: 5; flex: 0 0 auto; background: var(--bar); border-top: 1px solid var(--raised); padding-block: 14px; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 8px; }
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.back { min-height: 44px; margin-left: -8px; padding: 0 8px; display: inline-flex; align-items: center; gap: 4px; border: none; background: none; font-size: 16px; font-weight: 600; }
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+.sub { font-size: 15px; color: var(--muted); }
+.small { font-size: 14px; color: var(--muted); }
+.title { font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.4px; }
+.h2 { font-size: 18px; font-weight: 700; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.stack-sm { display: flex; flex-direction: column; gap: 4px; }
+
+.card { background: var(--card); border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.inset { background: var(--raised); border-radius: 18px; padding: 16px; }
+
+.btn { min-height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; border: none; padding: 0 18px; text-decoration: none; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-quiet { background: var(--raised); color: var(--fg); font-weight: 600; }
+.btn-outline { background: transparent; border: 1.5px solid var(--control); color: var(--fg); font-weight: 600; }
+.btn-dashed { background: transparent; border: 1.5px dashed var(--control); color: var(--fg); font-weight: 600; }
+.btn-text { min-height: 44px; background: none; border: none; font-size: 15px; font-weight: 600; text-decoration: underline; }
+.pill { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 600; background: transparent; border: 1.5px solid var(--control); }
+.pill[aria-pressed="true"], .opt[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.chip { min-height: 44px; display: inline-flex; align-items: center; gap: 6px; padding: 0 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: 14px; font-weight: 600; }
+.icon-btn { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 14px; border: none; background: var(--raised); display: flex; align-items: center; justify-content: center; }
+.round { width: 44px; height: 44px; border-radius: 999px; border: 1.5px solid var(--control); background: transparent; font-size: 22px; line-height: 1; }
+.seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 18px; background: var(--card); }
+.seg button { min-height: 48px; border: 1.5px solid transparent; border-radius: 14px; background: transparent; font-size: 15px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+
+.status { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; }
+.good { color: var(--good); }
+.warn { color: var(--warn); }
+.bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.bar > span { display: block; height: 100%; border-radius: 999px; background: var(--accent); }
+
+.rows li { display: grid; grid-template-columns: 52px 1fr; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.rows li .t { color: var(--muted); }
+.link-card { display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--card); border-radius: 20px; border: none; text-align: left; width: 100%; }
+.badge { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 14px; background: var(--raised); display: flex; align-items: center; justify-content: center; }
+
+.step { background: var(--card); border-radius: 20px; padding: 12px 12px 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.step-row { display: flex; align-items: center; gap: 8px; }
+.legs li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.leg-n { width: 28px; height: 28px; border-radius: 8px; background: var(--raised); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--info); }
+.addon { width: 100%; min-height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 16px; background: var(--raised); border: 1.5px solid transparent; text-align: left; }
+.addon[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.tag { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--control); font-size: 14px; font-weight: 600; }
+.addon[aria-pressed="true"] .tag { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }
+
+.tl li { display: grid; grid-template-columns: 52px 28px 1fr; gap: 10px; align-items: start; padding: 10px 0; }
+.tl .subs li { display: block; padding: 0; }
+.tl-tight li { grid-template-columns: 22px minmax(0, 1fr); column-gap: 10px; row-gap: 4px; }
+.tl-tight > li { position: relative; }
+.tl-tight > li:not(:last-child)::before { content: ''; position: absolute; left: 9.5px; top: 38px; bottom: -6px; width: 3px; border-radius: 3px; background: var(--line); }
+.tl-tight li > :nth-child(1) { grid-column: 2; grid-row: 1; padding-top: 0 !important; font-weight: 600; }
+.tl-tight li > :nth-child(2) { grid-column: 1; grid-row: 1 / span 2; margin-top: 0; }
+.tl-tight li > :nth-child(3) { grid-column: 2; grid-row: 2; }
+/* Today timeline: time sits above each step, rail on the left */
+.tl-rows > li { grid-template-columns: 28px minmax(0, 1fr) !important; column-gap: 10px !important; row-gap: 4px; }
+.tl-rows > li > :nth-child(1) { grid-column: 2; grid-row: 1; padding-top: 0 !important; }
+.tl-rows > li > :nth-child(2) { grid-column: 1; grid-row: 1 / span 2; }
+.tl-rows > li > :nth-child(3) { grid-column: 2; grid-row: 2; }
+.tl-tight .btn { padding-left: 10px; padding-right: 10px; }
+.dot { margin-top: 2px; width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--control); background: var(--bg); }
+.dot.done { background: var(--good); border-color: var(--good); }
+.dot.now { border: 6px solid var(--accent); }
+.dot.seat { border-color: var(--accent); color: var(--accent); }
+.auto { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--info); }
+
+.check { width: 100%; min-height: 60px; display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 18px; border: none; background: var(--card); text-align: left; }
+.check[aria-pressed="true"] { background: var(--bar); }
+.box { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 9px; border: 2px solid var(--control); display: flex; align-items: center; justify-content: center; }
+.check[aria-pressed="true"] .box { background: var(--good); border-color: var(--good); }
+.check[aria-pressed="true"] .lbl { color: var(--muted); }
+.lbl { font-size: 17px; font-weight: 600; }
+.state { margin-left: auto; flex: 0 0 auto; font-size: 13px; font-weight: 600; color: var(--muted); }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 14px; font-weight: 600; color: var(--muted); }
+.field input { min-height: 48px; border-radius: 14px; border: 1.5px solid var(--control); background: var(--bg); padding: 0 14px; font-size: 16px; }
+.field input:focus-visible { border-color: var(--accent); }
+
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; flex-direction: column; justify-content: flex-end; z-index: 20; }
+.sheet { background: var(--card); border-radius: 28px 28px 0 0; padding-block: 12px calc(28px + env(safe-area-inset-bottom, 0px)); padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 16px; animation: up 220ms ease-out; max-height: 92%; overflow-y: auto; }
+@keyframes up { from { transform: translateY(40px); opacity: 0.5; } to { transform: none; opacity: 1; } }
+@keyframes toastin { from { transform: translate(-50%, 20px); opacity: 0.5; } to { transform: translate(-50%, 0); opacity: 1; } }
+.grab { align-self: center; width: 40px; height: 5px; border-radius: 999px; background: var(--control); }
+.amounts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.amounts button { min-height: 56px; border-radius: 16px; font-size: 18px; font-weight: 700; background: transparent; border: 1.5px solid var(--control); }
+.amounts button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.calm { background: var(--raised); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+
+/* alarm: one steady block of colour, never flashes */
+.alarm-view { background: var(--bg); }
+.alarm { flex: 1 1 auto; border-radius: 32px; background: var(--accent); color: var(--on-accent); padding: 28px 22px 18px; display: flex; flex-direction: column; gap: 14px; min-height: 560px; }
+.alarm .big { font-size: clamp(80px, 25vw, 104px); font-weight: 700; letter-spacing: -3px; white-space: nowrap; line-height: 0.95; margin-left: -4px; }
+.alarm .what { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.alarm .b { min-height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 17px; font-weight: 700; border: none; color: var(--on-accent); }
+.alarm .b1 { background: var(--on-accent); color: var(--accent); }
+.alarm .b2 { background: transparent; border: 2px solid var(--on-accent); }
+.alarm .b3 { min-height: 44px; background: none; font-size: 16px; font-weight: 600; text-decoration: underline; }
+
+.lock { background: #08080A; }
+.island { align-self: center; min-height: 37px; width: 250px; max-width: 100%; padding: 0 14px; border-radius: 999px; background: #000; border: none; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; }
+.clock { text-align: center; }
+.clock .big { font-size: 92px; line-height: 1; font-weight: 700; letter-spacing: -3px; }
+.steps5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.steps5 li { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.steps5 li .mk { width: 22px; height: 22px; border-radius: 999px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--control); }
+.steps5 li.d .mk { background: var(--good); border-color: var(--good); }
+.steps5 li.n .mk { border: 6px solid var(--accent); }
+.steps5 li.n { color: var(--fg); }
+.note { padding: 10px 14px; border-radius: 14px; background: var(--raised); font-size: 14px; color: var(--soft); }
+
+.outcomes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.outcomes button, .opt { min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 20px; font-size: 16px; font-weight: 700; background: var(--card); border: 2px solid var(--line); }
+.outcomes button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.opt { min-height: 64px; flex-direction: row; justify-content: flex-start; padding: 0 16px; gap: 12px; text-align: left; font-size: 15px; }
+.feel { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.feel button { min-height: 52px; border-radius: 16px; font-size: 18px; font-weight: 700; background: transparent; border: 1.5px solid var(--control); }
+.feel button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+
+.carousel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; margin: 0 -20px; padding: 0 20px 4px; scrollbar-width: none; }
+.carousel::-webkit-scrollbar { display: none; }
+.slide { flex: 0 0 86%; scroll-snap-align: center; min-height: 220px; border-radius: 26px; background: var(--card); border: 2px solid var(--line); padding: 22px; display: flex; flex-direction: column; gap: 10px; }
+.slide.picked { border-color: var(--accent); background: var(--accent-soft); }
+.slide .kind { font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); }
+.slide .words { font-size: 26px; font-weight: 700; line-height: 1.2; text-wrap: balance; }
+.dots { display: flex; justify-content: center; gap: 6px; }
+.dots span { width: 8px; height: 8px; border-radius: 999px; border: 1.5px solid var(--control); }
+.dots span.on { background: var(--fg); border-color: var(--fg); width: 18px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 12px 18px; border-radius: 999px; font-size: 15px; font-weight: 700; z-index: 30; animation: toastin 200ms ease-out; white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
+.wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+</style>
+
+<div id="app"></div>
+
+<script>
+(function () {
+  // ---------- icons ----------
+  const I = (d, w = 20, sw = 2) => `<svg aria-hidden="true" width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const ic = {
+    back: I('<path d="m15 6-6 6 6 6"/>', 22, 2.2),
+    chev: I('<path d="m9 6 6 6-6 6"/>', 20),
+    left: I('<path d="m15 6-6 6 6 6"/>', 20, 2.2),
+    right: I('<path d="m9 6 6 6-6 6"/>', 20, 2.2),
+    up: I('<path d="m6 15 6-6 6 6"/>', 20, 2.2),
+    down: I('<path d="m6 9 6 6 6-6"/>', 20, 2.2),
+    x: I('<path d="M6 6l12 12M18 6 6 18"/>', 18, 2.2),
+    plus: I('<path d="M12 5v14M5 12h14"/>', 20, 2.2),
+    tick: I('<path d="m5 12 5 5 9-10"/>', 16, 3),
+    tickDark: '<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0E1513" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>',
+    ok: I('<circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/>', 20, 2.4),
+    late: I('<circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2"/>', 20, 2.4),
+    clock: I('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', 24, 2.2),
+    list: I('<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', 24),
+    chart: I('<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/>', 24),
+    home: I('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9v12h14V9"/>', 22),
+    moon: I('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>', 22),
+    cal: I('<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>', 22),
+    timer: I('<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>', 20, 2.2),
+    bell: I('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>', 20, 2.2),
+    phone: I('<rect x="6" y="2" width="12" height="20" rx="3"/><path d="M10 18h4"/>', 18),
+    pin: I('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', 14, 2.2),
+    seat: I('<path d="M6 19v-3M18 19v-3M5 16h14l-1-6H6l-1 6zM8 10V5h8v5"/>', 14, 2.2),
+    shield: I('<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3z"/><path d="m9 12 2 2 4-4"/>', 22),
+    bulb: I('<path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V16h8v-1.3A7 7 0 0 0 12 2z"/>', 22),
+    ear: I('<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/>', 22),
+    train: I('<rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M8 21l2-4M16 21l-2-4"/>', 16, 2.2),
+    msg: I('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>', 20, 2.2),
+    leaf: I('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5.1-6"/>', 22),
+    user: I('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', 22),
+    cloud: I('<path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9z"/>', 22),
+    shirt: I('<path d="M20.4 6.6 16 4a4 4 0 0 1-8 0L3.6 6.6a1 1 0 0 0-.5 1.2l1 3a1 1 0 0 0 1.2.6L7 11v9h10v-9l1.7.4a1 1 0 0 0 1.2-.6l1-3a1 1 0 0 0-.5-1.2z"/>', 22),
+    drop: I('<path d="M12 2.7s-6 6.6-6 11.3a6 6 0 0 0 12 0c0-4.7-6-11.3-6-11.3z"/>', 22),
+    users: I('<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-3-5.5"/>', 22),
+    car: I('<path d="M5 17h14M5 17v2M19 17v2M3 13l2-6h14l2 6v4H3z"/><circle cx="7.5" cy="14" r="1"/><circle cx="16.5" cy="14" r="1"/>', 22),
+    door: I('<path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18"/><circle cx="15" cy="12" r="1"/>', 22)
+  };
+  // prompt level chip and its dropdown, used on Today and Journey headers
+  function levelChip() {
+    const lvl = LEVELS.find((l) => l.id === S.level);
+    return `<button class="chip" aria-haspopup="true" aria-expanded="${!!S.levelMenu}" aria-controls="lvl-menu" aria-label="Prompts: ${lvl.label}. Change prompt level" data-act="levelMenu" style="flex:0 0 auto">${vol(S.level)}${lvl.label}${S.levelMenu ? ic.up.replace(/width="20" height="20"/, 'width="16" height="16"') : ic.down.replace(/width="20" height="20"/, 'width="16" height="16"')}</button>
+        ${S.levelMenu ? `<div id="lvl-menu" role="group" aria-label="Prompt level" style="position:absolute;right:0;top:52px;z-index:8;width:280px;max-width:100%;background:var(--raised);border:1px solid var(--line);border-radius:20px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:4px">${LEVELS.map((l) => `<button aria-pressed="${l.id === S.level}" data-act="levelPick" data-k="${l.id}" style="min-height:56px;display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:14px;text-align:left;border:1.5px solid ${l.id === S.level ? 'var(--accent)' : 'transparent'};background:${l.id === S.level ? 'var(--accent-soft)' : 'transparent'}"><span style="margin-top:1px">${vol(l.id)}</span><span class="stack-sm" style="gap:2px;flex:1 1 auto"><span style="font-weight:700">${l.label}</span><span class="small" style="font-size:13px">${l.help}</span></span>${l.id === S.level ? `<span style="color:var(--accent)">${ic.tick}</span>` : ''}</button>`).join('')}</div>` : ''}`;
+  }
+  const vol = (lvl, w = 18) => I('<path d="M11 5 6 9H2v6h4l5 4V5z"/>' + (lvl === 'muted' ? '<path d="m22 9-6 6M16 9l6 6"/>' : lvl === 'minimal' ? '<path d="M15.5 8.5a5 5 0 0 1 0 7"/>' : '<path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>'), w);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const dur = (m) => m < 60 ? m + ' min' : Math.floor(m / 60) + ' hr' + (m % 60 ? ' ' + (m % 60) + ' min' : '');
+  const fmt = (m) => { m = ((m % 1440) + 1440) % 1440; return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+
+  // ---------- data ----------
+  const PRESETS = {
+    manchester: { label: 'Workshop in Manchester', event: 'Workshop in Manchester · Thu 30 Oct · 10:00', start: 600, min: 45, max: 60, steps: [
+      { name: 'Leave the house', mins: 10 },
+      { name: 'Travel', mins: 86, legs: [['Taxi to Chester station', 10], ['Walk to the platform', 3], ['Spare time at the station', 8], ['Train to Manchester', 65]] },
+      { name: 'Walk to the venue', mins: 10 },
+      { name: 'Check in and find your seat', mins: 9 },
+      { name: '5 minutes to yourself', mins: 5, fixed: true }] },
+    chester: { label: 'Workday in Chester', event: 'Workday in Chester · Fri 31 Oct · 09:00', start: 540, min: 40, max: 55, steps: [
+      { name: 'Leave the house', mins: 10 },
+      { name: 'Travel', mins: 30, legs: [['Drive to the car park', 24], ['Park and pay', 6]] },
+      { name: 'Walk to the office', mins: 7 },
+      { name: 'Find a desk', mins: 8 },
+      { name: '5 minutes to yourself', mins: 5, fixed: true }] },
+    night: { label: 'Night out', event: 'Night out · Sat 1 Nov · 19:30', start: 1170, min: 50, max: 75, steps: [
+      { name: 'Leave the house', mins: 10 },
+      { name: 'Travel', mins: 22, legs: [['Uber to the restaurant', 16], ['Uber buffer', 6]] },
+      { name: 'Find the table', mins: 5 },
+      { name: '5 minutes to yourself', mins: 5, fixed: true }] }
+  };
+  const ADDONS = [{ id: 'hair', label: 'Wash hair', mins: 15 }, { id: 'dog', label: 'Walk the dog first', mins: 20 }];
+  const LEVELS = [
+    { id: 'muted', label: 'Muted', help: 'On screen only. No sound or speech.' },
+    { id: 'minimal', label: 'Minimal', help: 'Only the essentials: start getting ready, leave now, park.' },
+    { id: 'full', label: 'Full', help: 'Every prompt, including heads-ups like “10 min until you leave”.' }
+  ];
+  const CHECKLIST = [
+    { id: 'doors', label: 'Doors locked', note: 'Front and back' },
+    { id: 'devices', label: 'Devices off', note: 'Hair dryer, straighteners' },
+    { id: 'treat', label: 'Dog treat given' },
+    { id: 'radio', label: 'Radio on for the dog' },
+    { id: 'bag', label: 'Bag and laptop' },
+    { id: 'coat', label: 'Coat', note: 'Rain likely later' },
+    { id: 'keys', label: 'Keys' },
+    { id: 'phone', label: 'Phone and charger' }
+  ];
+  const EVENING = [
+    { id: 'bag', label: 'Pack your bag', note: 'Laptop, charger, notebook, pass' },
+    { id: 'charge', label: 'Charge your phone and laptop' },
+    { id: 'clothes', label: 'Decide on clothes', note: 'Rain likely, so lay out a coat' },
+    { id: 'door', label: 'Keys and coat by the door' },
+    { id: 'treat', label: 'Set out the dog treat' },
+    { id: 'taxi', label: 'Book the taxi for 08:00' }
+  ];
+  const SLIDES = [
+    { kind: 'Notice', words: 'Take in your surroundings', note: 'Name three things you can see and one you can hear.', icon: 'leaf' },
+    { kind: 'Intention', words: 'Try your best', note: 'That is all today asks of you.', icon: 'bulb' },
+    { kind: 'Intention', words: 'Listen more than you talk', note: 'Let others finish before you speak.', icon: 'ear' },
+    { kind: 'Intention', words: 'Ask one good question', note: 'Curiosity beats having all the answers.', icon: 'bulb' },
+    { kind: 'Intention', words: 'Be curious, not perfect', note: 'You are here to learn.', icon: 'leaf' },
+    { kind: 'Breathe', words: 'Breathe. You made it.', note: 'In for four, out for six. Twice.', icon: 'cloud' }
+  ];
+  const CAUSES = [
+    { id: 'start', label: 'Started late', mins: 5 },
+    { id: 'ready', label: 'Getting ready', mins: 10 },
+    { id: 'leave', label: 'Leaving the house', mins: 5, pattern: 'Leaving the house ran over in 4 of your last 6 trips.' },
+    { id: 'travel', label: 'Travel' },
+    { id: 'walk', label: 'Walk to the venue', mins: 5 },
+    { id: 'room', label: 'Finding the room', mins: 5 }
+  ];
+  const FEEL = ['Calm', 'Fairly calm', 'Okay', 'Stressed', 'Very stressed'];
+  // onboarding: stages grouped by category, phase says where in the trip they happen
+  const CATS = [
+    { id: 'wardrobe', label: 'Wardrobe', icon: 'shirt', phase: 'Getting ready', items: [
+      ['outfit', 'Choose an outfit', 5], ['iron', 'Iron clothes', 10], ['dress', 'Get dressed', 10], ['shoes', 'Shoes and coat on', 3]] },
+    { id: 'care', label: 'Self care', icon: 'drop', phase: 'Getting ready', items: [
+      ['shower', 'Shower', 10], ['hair', 'Style hair', 20], ['skin', 'Skincare', 5], ['makeup', 'Make-up', 15], ['shave', 'Shave', 5], ['teeth', 'Brush teeth', 3], ['meds', 'Take medication', 2]] },
+    { id: 'deps', label: 'Dependents', icon: 'users', phase: 'Getting ready', hint: 'Kids, pets and caring duties', items: [
+      ['kidsready', 'Get the kids ready', 20], ['school', 'School drop-off', 15], ['nursery', 'Nursery drop-off', 15], ['dogwalk', 'Walk the dog', 20], ['petfood', 'Feed pets', 5], ['daycare', 'Dog to daycare', 15], ['care', 'Check in on someone you care for', 20]] },
+    { id: 'home', label: 'Leaving home', icon: 'home', phase: 'Leaving', items: [
+      ['bag', 'Pack your bag', 3], ['lock', 'Lock up and switch off', 5], ['tidy', 'Quick tidy', 10], ['petsettle', 'Settle pets (treat, radio)', 3]] },
+    { id: 'travel', label: 'Travel', icon: 'car', phase: 'Travel', hint: 'Journey times come live from Google Maps', items: [
+      ['car', 'Drive', 0], ['taxi', 'Taxi or Uber', 0], ['train', 'Train', 0], ['bus', 'Bus', 0], ['walk', 'Walk or cycle', 0], ['park', 'Find and pay for parking', 10]] },
+    { id: 'arrive', label: 'Arrival', icon: 'door', phase: 'Arrival', items: [
+      ['lastmile', 'Walk from car park or drop-off point to the venue', 5], ['reception', 'Sign in and security check', 5], ['room', 'Find your spot in the venue (floor, room, desk)', 5], ['cloak', 'Cloakroom or bathroom', 5], ['settle', 'Unpack and settle', 5]] }
+  ];
+  const DAYS = [['Thu', 30, 'Today'], ['Fri', 31, 'Tomorrow'], ['Sat', 1], ['Sun', 2], ['Mon', 3], ['Tue', 4], ['Wed', 5]];
+  const MONTH = (d) => (d >= 27 ? 'October' : 'November');
+  const EVENTS = [
+    { id: 'e1', day: 0, start: 600, title: 'Workshop in Manchester', where: '[Venue name], Manchester', src: 'Outlook', preset: 'manchester' },
+    { id: 'e2', day: 0, start: 1080, title: 'Dog daycare pickup', where: 'Daycare, [address]', src: 'Added by you', deadline: true, preset: 'daycare' },
+    { id: 'e3', day: 1, start: 570, title: 'Training', where: '[New venue], Chester', src: 'Teams', isNew: true },
+    { id: 'e4', day: 1, start: 1170, title: 'Dinner with friends', where: '[Restaurant], Chester', src: 'From a text message' },
+    { id: 'e5', day: 2, start: 660, title: 'Haircut', where: '[Salon], Chester', src: 'Outlook' },
+    { id: 'e6', day: 4, start: 540, title: 'Workday in Chester', where: 'Office, Chester', src: 'Outlook', preset: 'chester' },
+    { id: 'e7', day: 4, start: 855, title: 'Dentist', where: '[Dental practice], Chester', src: 'Outlook' },
+    { id: 'e8', day: 5, start: 540, title: 'Workday in Chester', where: 'Office, Chester', src: 'Outlook' },
+    { id: 'e9', day: 6, start: 570, title: 'Team away day', where: '[New venue], Liverpool', src: 'Teams', isNew: true }
+  ];
+  // minutes needed before the start, per preset (getting ready max + steps after)
+  const LEAD = { manchester: 180, chester: 115, night: 117, daycare: 25 };
+  const PRESET_NAMES = { manchester: 'Workshop in Manchester', chester: 'Workday in Chester', night: 'Night out', daycare: 'Leave work for daycare' };
+  const OB_DEFAULT = ['outfit', 'dress', 'shower', 'hair', 'makeup', 'teeth', 'dogwalk', 'bag', 'lock', 'petsettle', 'car', 'park', 'lastmile', 'room', 'settle'];
+
+  const fromPreset = (k) => { const p = PRESETS[k]; return { preset: k, min: p.min, max: p.max, steps: p.steps.map((s) => ({ ...s })), addons: {}, legsOpen: true, added: 0 }; };
+  const S = {
+    view: 'today', level: 'minimal', live: null, tx: {}, tmore: false, openDone: {},
+    cal: { day: 0, open: null, planned: { e1: 'manchester', e2: 'daycare', e6: 'chester' }, pick: 'default', onlyOpen: false },
+    ob: { sel: Object.fromEntries(OB_DEFAULT.map((k) => [k, true])), open: 'wardrobe', name: 'Default' }, subDone: { outfit: true, dress: true },
+    obMain: null, obFrom: 'today', obKind: 'preset', custom: [], oneOffs: 0,
+    plan: fromPreset('manchester'),
+    j: { sheet: false, extra: 0, draft: false },
+    leave: { doors: true, devices: true, treat: true },
+    eve: { bag: true, charge: true },
+    lock: { more: false, extra: 0 },
+    seat: { idx: 0, picked: -1 },
+    c: { outcome: 'late', why: 'mine', cause: 'leave', accepted: '', dismissed: false, feel: 0 },
+    toast: ''
+  };
+  const VIEWS = ['calendar', 'event', 'welcome', 'stages', 'routine', 'today', 'alarm', 'plan', 'journey', 'leave', 'lock', 'seat', 'checkin', 'evening'];
+  const TABS = { today: 'today', calendar: 'calendar', event: 'calendar', plan: 'plan', checkin: 'checkin' };
+
+  // ---------- pieces ----------
+  const backBtn = (to, label) => `<button class="back" data-go="${to}">${ic.back}${label}</button>`;
+  const statusLine = (late, text) => `<p class="status ${late ? 'warn' : 'good'}" role="status">${late ? ic.late : ic.ok}${late ? '<span class="sr">Late: </span>' : '<span class="sr">On track: </span>'}${esc(text)}</p>`;
+  const calmLate = (mins, seat) => `<div class="calm" role="status">
+      <p class="status warn" style="font-size:16px;font-weight:700">${ic.late}About ${mins} minutes late</p>
+      <p style="font-size:15px;line-height:1.45">Don’t panic. Your new time at your seat is <strong class="num">${seat}</strong>. Let them know, then just focus on getting there.</p>
+      <p class="small">This is a lesson, not a failure. We’ll look at what to change afterwards.</p>
+    </div>`;
+
+  // ---------- screens ----------
+  const TODAY_STEPS = [['Getting ready', 60], ['Leave the house', 10], ['Travel · taxi, then train', 86], ['Walk to the venue', 10], ['Check in and find your seat', 9], ['At your seat · 5 minutes to yourself', 5]];
+  const clock = (ms) => { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+  function todaySteps() {
+    // sample day starts 07:00; live mode starts the first step at the moment you tapped
+    let t = S.live || new Date(2026, 9, 30, 7, 0, 0).getTime();
+    const now = Date.now();
+    const mins = TODAY_STEPS.map((x, i) => x[1] + (S.tx[i] || 0));
+    const lastExt = Math.max(-1, ...Object.keys(S.tx).map(Number));
+    let owed = Object.values(S.tx).reduce((n, v) => n + v, 0);
+    const trims = [];
+    [[1, 2, 'Spare time leaving the house'], [2, 8, 'Spare time at the station']].forEach(([j, cap, label]) => {
+      if (j > lastExt && owed > 0) { const c = Math.min(cap, owed); mins[j] -= c; owed -= c; trims.push([label, c]); }
+    });
+    // a detected location change (S.geo) closes every earlier step and starts the next one at that moment
+    const geo = S.live && S.geo;
+    const list = TODAY_STEPS.map(([name], i) => {
+      if (geo && i === geo.idx) t = geo.at;
+      let start = t, end = t + mins[i] * 60000; t = end;
+      const before = geo && i < geo.idx;
+      if (before) { start = Math.min(start, geo.at); end = Math.min(end, geo.at); }
+      const state = !S.live ? 'todo' : before || now >= end ? 'done' : now >= start ? 'now' : 'todo';
+      return { i, name, mins: mins[i], planned: TODAY_STEPS[i][1], start, end, state, auto: before && geo.idx - 1 === i ? geo.why : '' };
+    });
+    list.trims = trims; list.late = owed;
+    return list;
+  }
+  function today() {
+    const steps = todaySteps();
+    const cur = steps.find((s) => s.state === 'now');
+    const finished = S.live && !cur && steps.every((s) => s.state === 'done');
+    const lvl = LEVELS.find((l) => l.id === S.level);
+    const late = steps.late > 0;
+    const seatAt = clock(steps[steps.length - 1].start);
+    const eventAt = S.live ? clock(S.live + TODAY_STEPS.reduce((n, x) => n + x[1], 0) * 60000) : '10:00';
+    const hero = S.live ? (finished ? `<div class="inset stack-sm" style="border-radius:20px;padding:18px"><p class="status good">${ic.ok}You made it. Enjoy the workshop.</p></div>` : '') : `
+        <div class="inset stack-sm" style="border-radius:20px;padding:18px">
+          <p class="sub">Start getting ready at</p>
+          <p class="num" style="font-size:48px;line-height:1;font-weight:700;letter-spacing:-1px">07:00</p>
+          <p class="sub" style="margin-top:4px">in 25 minutes · leave the house at 08:00</p>
+        </div>`;
+    const small = (svg) => svg.replace(/width="20" height="20"/, 'width="16" height="16"');
+    const rail = (s, last) => {
+      const mark = s.state === 'done' ? `<span aria-hidden="true" style="width:28px;height:28px;border-radius:999px;background:var(--good);display:flex;align-items:center;justify-content:center">${ic.tickDark}</span>`
+        : s.state === 'now' ? `<span aria-hidden="true" style="width:28px;height:28px;border-radius:999px;background:var(--bg);border:7px solid var(--accent)"></span>`
+        : `<span aria-hidden="true" style="width:28px;height:28px;border-radius:999px;background:var(--bg);border:2px solid var(--control)"></span>`;
+      return `<span style="display:flex;flex-direction:column;align-items:center;gap:0">${mark}${last ? '' : `<span aria-hidden="true" style="flex:1 1 auto;width:3px;min-height:16px;margin:6px 0 -6px;border-radius:3px;background:${s.state === 'done' ? 'var(--good)' : 'var(--line)'}"></span>`}</span>`;
+    };
+    const items = steps.map((s, k) => {
+      const last = k === steps.length - 1, timeCol = `<span class="num" style="font-size:15px;font-weight:${s.state === 'now' ? 700 : 600};color:${s.state === 'todo' ? 'var(--fg)' : s.state === 'now' ? 'var(--accent)' : 'var(--muted)'};padding-top:4px">${clock(s.start)}</span>`;
+      let body;
+      if (s.state === 'done' && !S.openDone[k]) {
+        body = `<button aria-expanded="false" data-act="doneOpen" data-n="${k}" style="width:100%;min-height:44px;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:14px;border:none;background:transparent;color:var(--muted);text-align:left;font-size:15px"><span style="flex:1 1 auto">${esc(s.name)} <span class="sr">(done)</span></span><span style="font-size:13px;font-weight:600">${s.auto ? `<span class="auto">${small(ic.pin)}Detected</span>` : 'Done'}</span>${small(ic.down)}</button>`;
+      } else if (s.state === 'done') {
+        body = `<div class="card" style="padding:14px 16px;gap:8px;background:var(--bar)">
+          <div class="top"><span style="font-weight:600;color:var(--soft)">${esc(s.name)}</span><button class="icon-btn" aria-expanded="true" aria-label="Minimise ${esc(s.name)}" data-act="doneOpen" data-n="${k}" style="background:transparent">${ic.up}</button></div>
+          <p class="small">${clock(s.start)} to ${clock(s.end)} · allowed ${dur(s.mins)}</p>
+          <p class="status good" style="font-size:14px">${small(ic.ok)}Done</p>${s.auto ? `<span class="auto">${small(ic.pin)}${esc(s.auto)}</span>` : ''}</div>`;
+      } else if (s.state === 'now') {
+        const pct = Math.min(100, ((Date.now() - s.start) / (s.end - s.start)) * 100);
+        body = `<section class="card" aria-label="Now: ${esc(s.name)}" style="padding:18px;gap:12px;background:var(--accent-soft);border:1.5px solid var(--accent)">
+          <div class="top"><span class="eyebrow" style="color:var(--accent)">Now</span><span class="small">${clock(s.start)} to ${clock(s.end)}</span></div>
+          <h2 style="font-size:20px;font-weight:700">${esc(s.name)}</h2>
+          <p class="num" style="font-size:44px;line-height:1;font-weight:700;letter-spacing:-1px"><span data-cd="${s.end}">${mmss(s.end - Date.now())}</span></p>
+          <div class="bar" aria-hidden="true"><span data-bar="${s.start}|${s.end}" style="width:${pct}%"></span></div>
+          ${S.tmore ? `<div class="amounts" role="group" aria-label="Extra time" style="grid-template-columns:repeat(3,minmax(0,1fr))">${[5, 10, 15].map((n) => `<button data-act="tAdd" data-n="${n}" style="min-height:48px;font-size:16px">+${n} min</button>`).join('')}</div>` : ''}
+          ${steps.trims.length || late ? `<div class="calm" style="background:var(--card);gap:6px" role="status">${late
+              ? `<p class="status warn" style="font-size:15px;font-weight:700">${small(ic.late)}About ${steps.late} min late</p><p style="font-size:14px;line-height:1.4">Don’t panic. New time at your seat: <strong class="num">${seatAt}</strong>.</p>`
+              : `<p class="status good" style="font-size:15px;font-weight:700">${small(ic.ok)}Still on time</p>`}
+              ${steps.trims.map((t) => `<p class="small" style="display:flex;justify-content:space-between"><span>${t[0]}</span><span class="num">−${t[1]} min</span></p>`).join('')}</div>` : ''}
+          <button class="btn btn-outline" aria-expanded="${!!S.tmore}" data-act="tMore" style="background:var(--card)">${ic.timer}I need more time</button>
+          ${s.i < 2 || s.i === 2 ? `<button class="btn-text" data-act="geoSim" data-n="${s.i < 2 ? 2 : 3}" style="display:flex;align-items:center;justify-content:center;gap:6px;color:var(--info)">${small(ic.pin)}${s.i < 2 ? 'Simulate: my phone leaves home' : 'Simulate: I’m near the venue'}</button>` : ''}
+        </section>`;
+      } else {
+        body = `<div class="card" style="padding:14px 16px;gap:4px"><span style="font-weight:600">${esc(s.name)}</span><span class="small">${dur(s.mins)}${last ? ` · before the ${eventAt} start` : ''}</span></div>`;
+      }
+      return `<li style="display:grid;grid-template-columns:44px 28px minmax(0,1fr);gap:10px;align-items:stretch;padding-bottom:${last ? 0 : 10}px">${timeCol}${rail(s, last)}<div style="min-width:0">${body}</div></li>`;
+    }).join('');
+    return { body: `
+      <header class="top" style="align-items:flex-start;position:relative">
+        <div class="stack-sm"><p class="sub">Thursday 30 October</p><h1 class="title" style="font-size:30px">Good morning, Catherine</h1></div>
+        ${levelChip()}
+      </header>
+      <section class="card" aria-labelledby="next-h" style="border-radius:28px;padding:22px">
+        <div class="stack-sm"><p class="eyebrow">Next up</p><h2 id="next-h" style="font-size:22px;font-weight:700">Workshop in Manchester</h2><p class="sub">Starts ${eventAt} · at your seat by ${S.live ? seatAt : '09:55'}</p></div>
+        ${hero}
+        ${statusLine(late, late ? `About ${steps.late} min late · at your seat by ${seatAt}` : 'On track')}
+        <div class="stack" style="gap:10px">
+          ${S.live ? `<button class="btn btn-outline" data-act="liveStop">Stop the live demo</button>` : `<button class="btn btn-primary" data-act="liveStart">${ic.timer}Try it live, starting now</button>`}
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-quiet" style="flex:1 1 0" data-go="alarm">${ic.bell}Alarm</button>
+            <button class="btn btn-quiet" style="flex:1 1 0" data-go="plan">Edit plan</button>
+          </div>
+          ${S.live ? '' : `<p class="small" style="text-align:center">In the app, each step starts by itself when the clock reaches it. Try it live to see the countdown.</p>`}
+        </div>
+      </section>
+      <section class="stack" aria-labelledby="tl-today">
+        <h2 id="tl-today" style="font-size:20px;font-weight:700">Your plan</h2>
+        <ol class="tl-rows" aria-label="Timeline">${items}</ol>
+      </section>
+      <section class="stack" aria-labelledby="soon-h">
+        <h2 id="soon-h" style="font-size:20px;font-weight:700">Coming up</h2>
+        <button class="link-card" data-go="evening"><span class="badge" style="color:var(--info)">${ic.moon}</span><span class="stack-sm" style="flex:1 1 auto;gap:2px"><span style="font-weight:600">Tonight, 21:00 · prep for Friday</span><span class="small">2 of 6 done · training at a new venue</span></span><span style="color:var(--muted)">${ic.chev}</span></button>
+        <button class="link-card" data-go="plan"><span class="badge" style="color:var(--warn)">${ic.home}</span><span class="stack-sm" style="flex:1 1 auto;gap:2px"><span style="font-weight:600">Leave work by 17:05</span><span class="small">Daycare pickup by 18:00 · includes packing up</span></span><span style="color:var(--muted)">${ic.chev}</span></button>
+        <button class="btn btn-quiet" data-go="calendar">${ic.cal}Plan the week ahead</button>
+        <button class="btn btn-dashed" data-act="quickAdd">${ic.plus}Add an event from a text message</button>
+        <button class="btn-text" data-go="welcome" style="align-self:center">Set up your routine again</button>
+      </section>` };
+  }
+
+  function alarm() {
+    return { cls: 'alarm-view', body: `
+      <section class="alarm" role="alertdialog" aria-labelledby="al-h" aria-describedby="al-d">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-8px -8px 0 0"><p style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700">${ic.bell}Never Late · Alarm</p><button data-act="alarmOff" aria-label="Turn off alarm" style="min-width:44px;min-height:44px;border-radius:999px;border:2px solid var(--on-accent);background:none;color:var(--on-accent);display:flex;align-items:center;justify-content:center">${ic.x}</button></div>
+        <p class="big num">07:00</p>
+        <h1 id="al-h" class="what">Time to start getting ready</h1>
+        <p id="al-d" style="font-size:16px;font-weight:500;line-height:1.4">Workshop in Manchester at 10:00. You have up to 60 minutes. Leave the house at 08:00.</p>
+        <span style="flex:1 1 auto"></span>
+        <button class="b b1" data-go="journey">Start getting ready</button>
+        <button class="b b2" data-act="alarmMore">${ic.timer}I need more time</button>
+        <div style="display:flex;justify-content:space-between;gap:8px"><button class="b b3" data-act="snooze">Snooze 5 min</button><button class="b b3" data-act="alarmOff">Turn off alarm</button></div>
+      </section>
+      <p class="small" style="text-align:center">The colour stays steady and never flashes. Sound and vibration follow your prompt level.</p>` };
+  }
+
+  function plan() {
+    const st = S.plan, p = PRESETS[st.preset];
+    const addonMins = ADDONS.reduce((n, a) => n + (st.addons[a.id] ? a.mins : 0), 0);
+    const after = st.steps.reduce((n, s) => n + s.mins, 0);
+    let t = p.start - after;
+    const ready = t - st.max - addonMins;
+    const slack = st.max - st.min;
+    const steps = st.steps.map((s, i) => {
+      const start = fmt(t); t += s.mins;
+      const legs = s.legs ? `
+        <button class="btn-outline" style="align-self:flex-start;min-height:44px;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:12px;font-size:14px;font-weight:600" aria-expanded="${st.legsOpen}" data-act="legs">${st.legsOpen ? 'Hide' : 'Show'} ${s.legs.length} legs ${st.legsOpen ? ic.up : ic.down}</button>
+        ${st.legsOpen ? `<ul class="legs" aria-label="Travel legs">${s.legs.map((l, k) => `<li><span class="leg-n" aria-hidden="true">${k + 1}</span><span>${esc(l[0])}</span><span class="small num">${l[1]} min</span></li>`).join('')}</ul><p class="small">Live times from Google Maps</p>` : ''}` : '';
+      return `<li class="step"><div class="step-row">
+        <span class="stack-sm" style="flex:1 1 auto;min-width:0;gap:2px"><span style="font-weight:600">${esc(s.name)}</span><span class="small">${s.mins} min · ${s.fixed ? 'at your seat ' : 'starts '}${start}</span></span>
+        ${s.fixed ? `<span class="small" style="display:flex;align-items:center;gap:4px">${ic.seat}Always kept</span>` : `
+        <button class="icon-btn" aria-label="Move ${esc(s.name)} up" data-act="up" data-i="${i}" ${i === 0 ? 'disabled' : ''}>${ic.up}</button>
+        <button class="icon-btn" aria-label="Move ${esc(s.name)} down" data-act="down" data-i="${i}" ${i >= st.steps.length - 2 ? 'disabled' : ''}>${ic.down}</button>
+        <button class="icon-btn" aria-label="Remove ${esc(s.name)}" data-act="rm" data-i="${i}">${ic.x}</button>`}
+      </div>${legs}</li>`;
+    }).join('');
+    const stepper = (id, label, val) => `<div class="inset" style="padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px">
+        <span class="eyebrow" style="font-size:12px">${label}</span>
+        <span class="num" aria-live="polite" style="font-size:22px;font-weight:700;white-space:nowrap">${val} min</span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="round" aria-label="Decrease ${label.toLowerCase()} by 5 minutes" data-act="${id}Down">−</button>
+          <button class="round" aria-label="Increase ${label.toLowerCase()} by 5 minutes" data-act="${id}Up">+</button>
+        </div></div>`;
+    return {
+      body: `
+      <header class="stack">
+        ${backBtn('today', 'Today')}
+        <div class="stack-sm"><h1 class="title">Plan this event</h1><p class="sub">${esc(p.event)}</p></div>
+      </header>
+      <section class="stack" aria-labelledby="preset-h">
+        <h2 id="preset-h" class="h2">Preset</h2>
+        <div class="wrap" role="group" aria-labelledby="preset-h">${Object.keys(PRESETS).filter((k) => !PRESETS[k].oneOff || k === st.preset).map((k) => `<button class="pill" aria-pressed="${k === st.preset}" data-act="preset" data-k="${k}">${k === st.preset ? ic.tick : ''}${esc(PRESETS[k].label)}</button>`).join('')}<button class="pill" style="border-style:dashed" data-act="newPreset" data-k="preset">${ic.plus}New preset</button><button class="pill" style="border-style:dashed" data-act="newPreset" data-k="bespoke">${ic.plus}Bespoke, just this once</button></div>
+      </section>
+      <section class="card" aria-labelledby="ready-h">
+        <div class="stack-sm"><h2 id="ready-h" class="h2">Getting ready</h2><p class="small">We plan for the maximum, so anything less is spare time.</p></div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">${stepper('min', 'Minimum', st.min)}${stepper('max', 'Maximum', st.max)}</div>
+        <div class="stack" style="gap:8px"><p class="small" style="font-weight:600">Add-ons for this event</p>
+          ${ADDONS.map((a) => `<button class="addon" aria-pressed="${!!st.addons[a.id]}" data-act="addon" data-k="${a.id}"><span class="stack-sm" style="gap:2px"><span style="font-weight:600">${a.label}</span><span class="small">+${a.mins} min</span></span><span class="tag">${st.addons[a.id] ? ic.tick + 'Added' : ic.plus.replace('width="20" height="20"', 'width="14" height="14"') + 'Add'}</span></button>`).join('')}
+        </div>
+      </section>
+      <section class="stack" aria-labelledby="steps-h">
+        <div class="stack-sm"><h2 id="steps-h" class="h2">After getting ready</h2><p class="small">Use the arrows to reorder. Steps tied to a place tick themselves off when your phone gets there.</p></div>
+        <ol class="stack" style="gap:10px">${steps}</ol>
+        <button class="btn btn-dashed" data-act="addStep">${ic.plus}Add a step</button>
+      </section>`,
+      footer: `<div style="display:flex;align-items:center;gap:14px">
+        <div class="stack-sm" style="flex:1 1 auto;gap:2px"><span class="small" style="font-size:13px">Start getting ready</span><span class="num" aria-live="polite" style="font-size:24px;font-weight:700">${fmt(ready)}</span><span class="small" style="font-size:13px">${slack > 0 ? `Up to ${slack} min spare if you’re quick` : 'No spare time in this plan'}</span></div>
+        <button class="btn btn-primary" data-act="save">Save plan</button></div>`
+    };
+  }
+
+  function journey() {
+    const extra = S.j.extra, canWin = 10, late = extra > canWin;
+    const trims = []; let left = extra;
+    [['Spare time leaving the house', 2], ['Spare time at the station', 8]].forEach(([n, m]) => { if (left > 0) { const t = Math.min(m, left); trims.push([n, t]); left -= t; } });
+    const leave = 480 + extra, now = 458, seat = late ? '10:10' : '09:55', lateBy = 10;
+    const pct = Math.round(((now - 420) / (60 + extra)) * 100);
+    const tl = [
+      ['07:00', 'Getting ready', 'Now · up to 60 min' + (extra ? ' +' + extra : ''), 'now'],
+      [fmt(leave), 'Leave the house', (extra && !late ? 'Checklist · trimmed to 8 min' : 'Checklist · 10 min'), '', 'Ticks itself when you leave home'],
+      ['08:10', 'Travel', 'Taxi, then the 08:31 train · ' + (late ? 'next train 08:46' : 'live times from Google Maps'), '', 'Ticks itself at the station'],
+      [late ? '09:51' : '09:36', 'Walk to the venue', '10 min', '', 'Ticks itself near the venue'],
+      [late ? '10:01' : '09:46', 'Check in and find your seat', '9 min', ''],
+      [seat, 'At your seat', late ? 'Straight in, no time to yourself' : '5 minutes to yourself before 10:00', 'seat']
+    ];
+    const lvl = LEVELS.find((l) => l.id === S.level);
+    const sheet = !S.j.sheet ? '' : `
+      <div class="scrim" data-act="closeSheetBg">
+        <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="more-h">
+          <span class="grab" aria-hidden="true"></span>
+          <div class="top"><h2 id="more-h" style="font-size:22px;font-weight:700">How much more time?</h2><button class="icon-btn" style="border-radius:999px" aria-label="Close" data-act="closeSheet">${ic.x}</button></div>
+          <div class="amounts" role="group" aria-label="Extra time">${[5, 10, 15, 20].map((n) => `<button aria-pressed="${n === extra}" data-act="extra" data-n="${n}">+${n}</button>`).join('')}</div>
+          ${extra ? (late ? `${calmLate(lateBy, seat)}
+            <p class="small">We won back 10 minutes from spare time, but that misses the 08:31 train. The next one is at 08:46.</p>
+            <button class="btn btn-outline" style="min-height:48px;font-size:15px" aria-expanded="${S.j.draft}" data-act="draft">${ic.msg}Draft a “running late” message</button>
+            ${S.j.draft ? `<div class="stack" style="gap:8px"><p id="draft-text" style="padding:12px 14px;border-radius:14px;background:var(--bg);font-size:15px;line-height:1.4">Hi, I’m running about ${lateBy} minutes late for the workshop. I’ll be there for ${seat}. Sorry!</p><button class="btn btn-outline" style="min-height:44px;font-size:15px" data-act="copy">Copy message</button></div>` : ''}`
+            : `<div class="calm" aria-live="polite"><p class="status good" style="font-size:16px;font-weight:700">${ic.ok}Still on time. Here’s what we trimmed:</p>
+              <ul class="stack" style="gap:6px">${trims.map((t) => `<li style="display:flex;justify-content:space-between;gap:12px;font-size:15px"><span>${t[0]}</span><span class="num" style="font-weight:700">−${t[1]} min</span></li>`).join('')}</ul>
+              <p class="small">Travel and your 5 minutes at your seat are never cut.</p></div>`) : ''}
+          <button class="btn btn-primary" data-act="${extra ? 'applyExtra' : 'closeSheet'}">${extra ? 'Update my plan' : 'Cancel'}</button>
+        </section>
+      </div>`;
+    const subs = CATS.filter((c) => c.phase === 'Getting ready').flatMap((c) => c.items).filter((it) => S.ob.sel[it[0]]);
+    const nowCard = `<section class="card" aria-label="Now: Getting ready" style="padding:18px;gap:12px;background:var(--accent-soft);border:1.5px solid var(--accent)"><div class="top"><h2 style="font-size:20px;font-weight:700">Getting ready</h2><span class="eyebrow" style="color:var(--accent)">Now</span></div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+          <div class="stack-sm" style="gap:4px"><span class="num" style="font-size:52px;line-height:1;font-weight:700;letter-spacing:-1.5px;white-space:nowrap">${leave - now}<span style="font-size:32px;letter-spacing:-0.5px"> mins left</span></span><span class="sub">Leave at <strong class="num" style="color:var(--fg)">${fmt(leave)}</strong></span></div>
+        </div>
+        <div class="bar" style="background:var(--card)" aria-hidden="true"><span style="width:${pct}%"></span></div>
+        ${statusLine(late, late ? `About ${lateBy} min late · at your seat by ${seat}` : `On track · at your seat by ${seat}`)}
+        <ul class="stack subs" aria-label="Getting ready steps" style="gap:6px">${subs.map((it) => { const on = !!S.subDone[it[0]]; return `<li style="width:100%"><button class="check" aria-pressed="${on}" data-act="subToggle" data-k="${it[0]}" style="min-height:48px;padding:8px 12px;gap:10px;border-radius:14px;background:var(--card)"><span class="box" aria-hidden="true" style="width:24px;height:24px;border-radius:8px">${on ? ic.tickDark : ''}</span><span style="flex:1 1 auto;font-size:15px;${on ? 'color:var(--muted);text-decoration:line-through' : ''}">${esc(it[1])}</span><span class="small num" style="white-space:nowrap">${it[2]} min</span></button></li>`; }).join('')}</ul>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <button class="btn btn-primary" data-go="leave">${ic.tickDark}Ready</button>
+          <button class="btn btn-outline" data-act="openSheet" style="background:var(--card);white-space:nowrap">${ic.timer}Add time</button>
+        </div>
+      </section>`;
+    return {
+      body: `
+      <header class="top" style="position:relative">${backBtn('today', 'Today')}${levelChip()}</header>
+      <div class="stack-sm"><p class="sub">Thursday 30 October · starts 10:00</p><h1 class="title">Workshop in Manchester</h1></div>
+      <section class="stack" aria-labelledby="tl-h" style="gap:6px">
+        <h2 id="tl-h" class="h2">Your plan</h2>
+        <ol class="tl tl-tight">${tl.map((t) => `<li><span class="small num" style="font-size:15px;padding-top:2px">${t[0]}</span><span class="dot ${t[3]}" aria-hidden="true">${t[3] === 'done' ? ic.tickDark : t[3] === 'seat' ? ic.seat : ''}</span>${t[3] === 'now' ? `<div style="min-width:0">${nowCard}</div>` : `<span class="stack-sm" style="gap:2px"><span style="font-weight:${t[3] === 'now' ? 700 : 500};color:${t[3] === 'done' ? 'var(--muted)' : 'var(--fg)'}">${t[1]}<span class="sr">${t[3] === 'now' ? ' (now)' : t[3] === 'done' ? ' (done)' : ''}</span></span><span class="small">${t[2]}</span>${t[4] ? `<span class="auto">${ic.pin}${t[4]}</span>` : ''}</span>`}</li>`).join('')}</ol>
+      </section>`,
+      overlay: sheet
+    };
+  }
+
+  function leave() {
+    const t = S.leave, done = CHECKLIST.filter((c) => t[c.id]).length, all = done === CHECKLIST.length;
+    return {
+      body: `
+      <header class="stack">${backBtn('journey', 'Journey')}<div class="stack-sm"><p class="sub">Leave by 08:00 · taxi booked for 08:00</p><h1 class="title">Before you go</h1></div></header>
+      <div style="display:flex;align-items:center;gap:12px"><div class="bar" style="flex:1 1 auto" aria-hidden="true"><span style="width:${Math.round(done / CHECKLIST.length * 100)}%;background:var(--good)"></span></div><span class="num" aria-live="polite" style="font-size:15px;font-weight:600">${done} of ${CHECKLIST.length}</span></div>
+      <ul class="stack" style="gap:8px">${CHECKLIST.map((c) => `<li><button class="check" aria-pressed="${!!t[c.id]}" data-act="tick" data-k="${c.id}"><span class="box" aria-hidden="true">${t[c.id] ? ic.tickDark.replace(/14/g, '18') : ''}</span><span class="stack-sm" style="gap:2px"><span class="lbl">${c.label}</span>${c.note ? `<span class="small">${c.note}</span>` : ''}</span><span class="state" aria-hidden="true">${t[c.id] ? 'Done' : ''}</span></button></li>`).join('')}</ul>
+      ${all ? `<p class="card" role="status" style="flex-direction:row;align-items:center;gap:10px;padding:14px 16px;font-size:15px"><span class="good">${ic.shield}</span><span>Saved at 07:59. You can check this record later if you’re worried.</span></p>`
+            : `<p class="note" style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--info);margin-top:2px">${ic.pin}</span><span>If you leave home with items unticked, we’ll ask “Did you lock up and take your keys?”</span></p>`}`,
+      footer: `<button class="btn btn-primary" data-act="left">I’ve left the house</button><p class="small" style="text-align:center;font-size:13px">Tonight we’ll remind you to put your bag, coat and keys by the door.</p>`
+    };
+  }
+
+  function evening() {
+    const t = S.eve, done = EVENING.filter((c) => t[c.id]).length;
+    return {
+      body: `
+      <header class="stack">${backBtn('today', 'Today')}<div class="stack-sm"><p class="sub">Tonight, 21:00 · for Friday 09:30</p><h1 class="title">Get ahead for tomorrow</h1><p class="sub">Training in Chester, at a venue you haven’t been to before. Ten minutes now saves a rush in the morning.</p></div></header>
+      <section class="stack" aria-labelledby="ev-h">
+        <div class="top"><h2 id="ev-h" class="h2">Things you can do now</h2><span class="num small" aria-live="polite" style="font-weight:600">${done} of ${EVENING.length}</span></div>
+        <ul class="stack" style="gap:8px">${EVENING.map((c) => `<li><button class="check" aria-pressed="${!!t[c.id]}" data-act="eve" data-k="${c.id}"><span class="box" aria-hidden="true">${t[c.id] ? ic.tickDark.replace(/14/g, '18') : ''}</span><span class="stack-sm" style="gap:2px"><span class="lbl">${c.label}</span>${c.note ? `<span class="small">${c.note}</span>` : ''}</span><span class="state" aria-hidden="true">${t[c.id] ? 'Done' : ''}</span></button></li>`).join('')}</ul>
+      </section>
+      <section class="card" aria-labelledby="venue-h">
+        <div class="stack-sm"><h2 id="venue-h" class="h2">Check the venue</h2><p class="small">We’ll save these so you don’t have to look them up again.</p></div>
+        <div class="field"><label for="v-addr">Address</label><input id="v-addr" value="[Venue address], Chester"></div>
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <div class="field"><label for="v-floor">Floor</label><input id="v-floor" placeholder="e.g. 2"></div>
+          <div class="field"><label for="v-room">Room</label><input id="v-room" placeholder="e.g. Room 4B"></div>
+        </div>
+        <div class="field"><label for="v-park">Parking and entrance</label><input id="v-park" placeholder="e.g. Pay at machine, side entrance"></div>
+      </section>`,
+      footer: `<button class="btn btn-primary" data-act="eveDone">Done for tonight</button>`
+    };
+  }
+
+  function lock() {
+    const extra = S.lock.extra, used = Math.min(extra, 5), lateBy = Math.max(0, extra - 5), late = lateBy > 0;
+    const lvl = LEVELS.find((l) => l.id === S.level);
+    let status = 'On track · at your seat by 09:55';
+    if (extra && !late) status = 'Still on time · uses your 5 minutes at your seat';
+    if (late) status = `About ${lateBy} min late · at your seat by ${fmt(595 + extra)}`;
+    const steps = [['Ready', 'd'], ['Leave', 'd'], ['Travel', 'n'], ['Walk', ''], ['Seat', '']];
+    return {
+      cls: 'lock',
+      body: `
+      <button class="island" data-go="journey" aria-label="Never Late: train arrives 09:36, ${late ? lateBy + ' minutes late' : 'on track'}. Open the app"><span style="display:flex;align-items:center;gap:6px;color:var(--fg)"><span style="color:var(--info)">${ic.train}</span>09:36</span><span class="${late ? 'warn' : 'good'}" style="display:flex;align-items:center;gap:4px">${(late ? ic.late : ic.ok).replace(/width="20" height="20"/, 'width="14" height="14"')}${late ? lateBy + ' min late' : 'On track'}</span></button>
+      <div class="clock"><p style="font-size:19px;font-weight:600;color:var(--soft)">Thursday 30 October</p><p class="big num">08:41</p><p class="small" style="margin-top:6px">Preview of your lock screen</p></div>
+      <div style="flex:1 1 auto"></div>
+      <section class="card" aria-label="Never Late live activity" style="border-radius:28px;padding:18px;gap:14px">
+        <div class="top"><span class="eyebrow" style="display:flex;align-items:center;gap:8px"><span aria-hidden="true" style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center">${I('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/>', 14, 3)}</span>Never Late</span><span class="small" style="font-size:13px">Workshop · 10:00</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px"><div class="stack-sm" style="gap:2px"><span style="font-size:22px;font-weight:700">On the train</span><span style="font-size:15px;color:var(--soft)">Arrives Manchester 09:36</span></div><span class="num" style="font-size:28px;font-weight:700">55<span class="small" style="font-size:15px;font-weight:600"> min</span></span></div>
+        <ol class="steps5" aria-label="Progress">${steps.map((s) => `<li class="${s[1]}"><span class="mk" aria-hidden="true">${s[1] === 'd' ? ic.tickDark : ''}</span>${s[0]}<span class="sr">${s[1] === 'd' ? ', done' : s[1] === 'n' ? ', now' : ', to come'}</span></li>`).join('')}</ol>
+        ${statusLine(late, status)}
+        ${S.lock.more ? `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px" role="group" aria-label="Extra time">${[5, 10, 15].map((n) => `<button class="pill" style="justify-content:center;min-height:48px;border-radius:14px;padding:0" aria-pressed="${n === extra}" data-act="lockExtra" data-n="${n}">+${n} min</button>`).join('')}</div>` : ''}
+        <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+          <button class="btn btn-quiet" style="min-height:48px;font-size:15px" aria-expanded="${S.lock.more}" data-act="lockMore">${ic.timer}More time</button>
+          <button class="btn btn-quiet" style="min-height:48px;font-size:15px" aria-label="Prompts: ${lvl.label}. Tap to switch level" data-act="cycle">${vol(S.level)}${lvl.label}</button>
+        </div>
+      </section>
+      ${late ? `<div class="calm" role="status" style="background:var(--card)"><p style="font-size:15px;line-height:1.4"><strong>Don’t panic.</strong> New time at your seat: <strong class="num">${fmt(595 + extra)}</strong>. Let them know, then just focus on getting there.</p></div>` : `<section class="card" aria-label="Last spoken prompt" style="flex-direction:row;align-items:flex-start;gap:12px;border-radius:22px;padding:14px 16px"><span style="color:var(--muted)">${ic.ear}</span><span class="stack-sm" style="gap:2px"><span class="small" style="font-size:13px">Spoken at 08:32 through AirPods</span><span style="font-size:15px;line-height:1.35">“You’re on the 08:31. On track to arrive at 09:36.”</span></span></section>`}
+      <div class="top"><button class="back" data-go="journey" style="margin-left:0;font-size:14px">Open the app</button><button class="back" data-go="seat" style="font-size:14px;color:var(--accent)">Skip to your seat</button></div>`
+    };
+  }
+
+  function seat() {
+    const st = S.seat;
+    const picked = st.picked >= 0 ? SLIDES[st.picked] : null;
+    return {
+      body: `
+      <header class="stack">${backBtn('lock', 'Journey')}
+        <div class="stack-sm"><p class="status good">${ic.seat.replace(/width="14" height="14"/, 'width="20" height="20"')}At your seat · 09:55</p><h1 class="title">5 minutes to yourself</h1><p class="sub">The workshop starts at 10:00. Swipe through and pick what suits today.</p></div>
+      </header>
+      <section aria-roledescription="carousel" aria-label="Ways to spend 5 minutes" class="stack">
+        <div class="carousel" id="carousel">${SLIDES.map((s, i) => `<article class="slide${i === st.picked ? ' picked' : ''}" aria-roledescription="slide" aria-label="${i + 1} of ${SLIDES.length}" data-i="${i}">
+          <span style="color:var(--accent)">${ic[s.icon]}</span>
+          <span class="kind">${s.kind}</span>
+          <p class="words">${s.words}</p>
+          <p class="small" style="font-size:15px">${s.note}</p>
+          <span style="flex:1 1 auto"></span>
+          ${i === st.picked ? `<p class="status good">${ic.ok}Chosen for this workshop</p>` : `<button class="btn btn-quiet" style="min-height:48px" data-act="pick" data-i="${i}">Choose this one</button>`}
+        </article>`).join('')}</div>
+        <div class="top">
+          <button class="icon-btn" aria-label="Previous" data-act="slidePrev" ${st.idx === 0 ? 'disabled' : ''}>${ic.left}</button>
+          <div class="dots" aria-hidden="true">${SLIDES.map((_, i) => `<span class="${i === st.idx ? 'on' : ''}"></span>`).join('')}</div>
+          <button class="icon-btn" aria-label="Next" data-act="slideNext" ${st.idx === SLIDES.length - 1 ? 'disabled' : ''}>${ic.right}</button>
+        </div>
+      </section>
+      ${picked ? `<p class="note"><strong>${esc(picked.words)}.</strong> We’ll show this on your lock screen until 10:00.</p>` : ''}`,
+      footer: `<button class="btn btn-primary" data-go="checkin">Skip ahead to after the workshop</button>`
+    };
+  }
+
+  function checkin() {
+    const c = S.c, cause = CAUSES.find((x) => x.id === c.cause), isLate = c.outcome === 'late', mine = c.why === 'mine';
+    let sug = '';
+    if (isLate && mine && cause && !c.dismissed) {
+      let title, body, label;
+      if (cause.id === 'travel') { title = 'Travel ran over'; body = 'Travel times come live from Google Maps, so we won’t pad them. Want a bigger buffer for taxis on this route?'; label = 'Add a 5 min taxi buffer'; }
+      else { title = cause.pattern ? 'This keeps happening' : cause.label + ' ran over'; body = (cause.pattern ? cause.pattern + ' ' : '') + `Add ${cause.mins} min to “${cause.label}” in your Workshop in Manchester preset?`; label = `Add ${cause.mins} min`; }
+      sug = `<section class="card" aria-labelledby="sug-h" aria-live="polite">
+        <div style="display:flex;gap:12px;align-items:flex-start"><span class="badge" style="width:40px;height:40px;border-radius:12px;color:var(--warn)">${ic.bulb}</span><div class="stack-sm"><h2 id="sug-h" style="font-size:17px;font-weight:700">${title}</h2><p style="font-size:15px;line-height:1.4;color:var(--soft)">${body}</p></div></div>
+        ${c.accepted ? `<p class="status good" role="status">${ic.ok}${c.accepted === 'prep' ? 'Done. We’ll remind you at 21:00 the night before.' : 'Added. We’ll use it from your next trip.'}</p>`
+          : `<div class="stack" style="gap:8px"><button class="btn btn-primary" data-act="accept">${label}</button>${cause.id === 'leave' ? '<button class="btn btn-outline" data-act="acceptPrep">Remind me to prep the night before</button>' : ''}<button class="btn-text" data-act="dismiss">Not now</button></div>`}
+      </section>`;
+    }
+    const outcomes = [['early', 'Early', '<ellipse cx="12" cy="4.5" rx="6" ry="2"/><circle cx="12" cy="14" r="6.5"/><path d="M9.5 15.5a3.5 3.5 0 0 0 5 0M9.8 12h.01M14.2 12h.01"/>'], ['ontime', 'On time', '<path d="M20 6 9 17l-5-5"/>'], ['late', 'Late', '<path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18h.01"/>']];
+    const used = isLate && !mine ? 1 : 0;
+    return {
+      body: `
+      <header class="stack">${backBtn('today', 'Today')}<div class="stack-sm"><p class="sub">Workshop in Manchester · started 10:00</p><h1 class="title">Were you on time?</h1></div></header>
+      <div class="outcomes" role="group" aria-label="Arrival">${outcomes.map((o) => `<button aria-pressed="${c.outcome === o[0]}" data-act="outcome" data-k="${o[0]}">${I(o[2], 28)}${o[1]}</button>`).join('')}</div>
+      ${isLate ? `
+        <div class="calm"><p style="font-size:15px;line-height:1.45"><strong>That’s okay.</strong> One late trip doesn’t undo the good ones. Let’s see what we can learn from it.</p></div>
+        <section class="stack" aria-labelledby="why-h"><h2 id="why-h" class="h2">Could it have been avoided?</h2>
+          <div class="stack" role="group" aria-labelledby="why-h" style="gap:8px">
+            <button class="opt" aria-pressed="${mine}" data-act="why" data-k="mine">${mine ? ic.tick : '<span style="width:16px"></span>'}Yes, it was down to my timing</button>
+            <button class="opt" aria-pressed="${!mine}" data-act="why" data-k="other">${!mine ? ic.tick : '<span style="width:16px"></span>'}No, it was out of my control</button>
+          </div></section>
+        ${mine ? `<section class="stack" aria-labelledby="cause-h"><h2 id="cause-h" class="h2">Which step slowed you down?</h2><div class="wrap" role="group" aria-labelledby="cause-h">${CAUSES.map((x) => `<button class="pill" aria-pressed="${x.id === c.cause}" data-act="cause" data-k="${x.id}">${x.id === c.cause ? ic.tick : ''}${x.label}</button>`).join('')}</div></section>`
+          : `<p class="card" role="status" style="flex-direction:row;align-items:center;gap:10px;padding:16px;font-size:15px;line-height:1.4"><span class="good">${ic.shield}</span><span>Some delays can’t be helped. This one counts towards your allowance, so we won’t change your plan.</span></p>`}`
+        : `<p class="card" role="status" style="flex-direction:row;align-items:center;gap:10px;padding:16px;font-size:15px;line-height:1.4"><span class="good">${ic.ok}</span><span>${c.outcome === 'early' ? 'Nice. Arriving early is fine. Next time we can suggest something for the spare minutes.' : 'Great, you were on time. Your plan for this venue stays as it is.'}</span></p>`}
+      ${sug}
+      <section class="card" aria-labelledby="allow-h" style="gap:10px">
+        <div class="top"><h2 id="allow-h" class="h2">This month</h2><span class="small">Goal: 9 in 10 on time</span></div>
+        <p style="font-size:15px;line-height:1.45"><strong class="num">${isLate ? 8 : 9} of 9</strong> trips on time. Unavoidable delays allowed: <strong class="num">${used} of 1</strong> used.</p>
+        <p class="small">Late now and then is normal. The aim is steady progress, not a perfect record.</p>
+      </section>
+      <section class="stack" aria-labelledby="feel-h"><h2 id="feel-h" class="h2">How did you feel when you arrived?</h2>
+        <div class="feel" role="group" aria-labelledby="feel-h">${FEEL.map((f, i) => `<button aria-pressed="${c.feel === i + 1}" aria-label="${i + 1}, ${f}" data-act="feel" data-n="${i + 1}">${i + 1}</button>`).join('')}</div>
+        <div aria-hidden="true" class="small" style="display:flex;justify-content:space-between;font-size:13px"><span>Calm</span><span>Very stressed</span></div>
+      </section>`,
+      footer: `<button class="btn btn-primary" data-act="finish">Done</button>`
+    };
+  }
+
+  // ---------- calendar ----------
+  function obReadyMins() { return CATS.filter((c) => c.phase === 'Getting ready').flatMap((c) => c.items).filter((it) => S.ob.sel[it[0]]).reduce((n, it) => n + it[2], 0); }
+  // every step of a preset, getting ready first, so lead time and timeline always agree
+  const DAYCARE_STEPS = [{ name: 'Pack up and leave work', mins: 5 }, { name: 'Drive to daycare', mins: 12 }, { name: 'Park and walk in', mins: 3 }, { name: '5 minutes to yourself', mins: 5, fixed: true }];
+  function planSteps(k) {
+    if (k === 'daycare') return DAYCARE_STEPS;
+    const p = PRESETS[k] || presetFromOb(S.ob.name, '');
+    return [{ name: 'Get ready', mins: p.max }, ...p.steps];
+  }
+  function leadFor(k) { return planSteps(k).reduce((n, x) => n + x.mins, 0); }
+  function eventTimeline(k, start) {
+    let t = start - leadFor(k);
+    const rows = planSteps(k).map((x) => { const at = t; t += x.mins; return `<li><span class="small num" style="font-size:15px;padding-top:2px">${fmt(at)}</span><span class="dot${x.fixed ? ' seat' : ''}" aria-hidden="true">${x.fixed ? ic.seat : ''}</span><span class="stack-sm" style="gap:2px"><span style="font-weight:500">${x.fixed ? (k === 'daycare' ? 'There, with time to spare' : 'At your seat') : esc(x.name)}</span><span class="small">${x.fixed ? '5 min to settle' : dur(x.mins)}${x.legs ? ' · ' + x.legs.map((l) => esc(l[0])).join(', ') : ''}</span></span></li>`; }).join('');
+    return `${rows}<li><span class="small num" style="font-size:15px;padding-top:2px;color:var(--fg);font-weight:700">${fmt(start)}</span><span class="dot" aria-hidden="true" style="border-color:var(--fg)"></span><span style="font-weight:700">Event starts</span></li>`;
+  }
+  // turn the stage picker's ticks into a preset the plan screen can use
+  function presetFromOb(name, ev) {
+    const mins = (ph) => CATS.filter((c) => c.phase === ph).flatMap((c) => c.items).filter((it) => S.ob.sel[it[0]]).reduce((n, it) => n + it[2], 0);
+    const ready = mins('Getting ready'), leaving = mins('Leaving') || 5, arrive = mins('Arrival') || 5;
+    return { label: name, event: ev, start: 600, min: Math.round((ready * 0.8) / 5) * 5, max: ready, steps: [
+      { name: 'Leave the house', mins: leaving },
+      { name: 'Travel', mins: 30, legs: [['Journey (live from Maps)', 30]] },
+      { name: 'Arrive and find your spot', mins: arrive },
+      { name: '5 minutes to yourself', mins: 5, fixed: true }] };
+  }
+  function presetLabel(k) { return k === 'default' ? S.ob.name : PRESET_NAMES[k]; }
+
+  function calendar() {
+    const st = S.cal;
+    const planned = EVENTS.filter((e) => st.planned[e.id]).length;
+    const dayEvents = EVENTS.filter((e) => e.day === st.day && (!st.onlyOpen || !st.planned[e.id]));
+    const d = DAYS[st.day];
+    return { body: `
+      <header class="stack">
+        <div class="stack-sm"><p class="sub">Next 7 days</p><h1 class="title">Your week</h1></div>
+        <div class="inset" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+          <div class="bar" style="flex:1 1 auto" aria-hidden="true"><span style="width:${Math.round(planned / EVENTS.length * 100)}%"></span></div>
+          <span class="num" style="font-size:15px;font-weight:600">${planned} of ${EVENTS.length} planned</span>
+        </div>
+      </header>
+      <div role="group" aria-label="Choose a day" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px">${DAYS.map((x, i) => {
+        const evs = EVENTS.filter((e) => e.day === i), open = evs.filter((e) => !st.planned[e.id]).length, on = i === st.day;
+        return `<button aria-pressed="${on}" aria-label="${x[0]} ${x[1]} ${MONTH(x[1])}, ${evs.length} events, ${open} not planned" data-act="calDay" data-n="${i}" style="min-height:72px;border-radius:16px;border:1.5px solid ${on ? 'var(--accent)' : 'transparent'};background:${on ? 'var(--accent-soft)' : 'var(--card)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px">
+          <span style="font-size:12px;font-weight:600;color:var(--muted)">${x[0]}</span><span class="num" style="font-size:18px;font-weight:700">${x[1]}</span>
+          <span aria-hidden="true" style="display:flex;gap:3px;height:8px;align-items:center">${evs.map((e) => st.planned[e.id] ? '<span style="width:6px;height:6px;border-radius:999px;background:var(--good)"></span>' : '<span style="width:6px;height:6px;border-radius:999px;border:1.5px solid var(--muted)"></span>').join('')}</span>
+        </button>`; }).join('')}</div>
+      <div class="top"><h2 class="h2">${d[2] ? d[2] + ', ' : ''}${d[0]} ${d[1]} ${MONTH(d[1])}</h2><button class="pill" style="min-height:44px;font-size:14px;padding:0 12px;white-space:nowrap;flex:0 0 auto" aria-pressed="${st.onlyOpen}" data-act="calOnly">${st.onlyOpen ? ic.tick : ''}Not planned</button></div>
+      <ul class="stack" style="gap:10px">${dayEvents.length ? dayEvents.map((e) => {
+        const pk = st.planned[e.id];
+        return `<li><button class="link-card" data-act="calOpen" data-k="${e.id}" style="align-items:flex-start">
+          <span class="num" style="flex:0 0 auto;width:48px;font-size:15px;font-weight:700;padding-top:2px">${fmt(e.start)}</span>
+          <span class="stack-sm" style="flex:1 1 auto;gap:4px;min-width:0">
+            <span style="font-weight:600">${esc(e.title)}${e.deadline ? ' (deadline)' : ''}</span>
+            <span class="small">${esc(e.where)} · ${e.src}</span>
+            ${pk ? `<span class="status good" style="font-size:14px">${ic.ok.replace(/width="20" height="20"/, 'width="16" height="16"')}Planned · ${e.deadline ? 'leave work by' : 'start getting ready at'} ${fmt(e.start - leadFor(pk))}</span>`
+                 : `<span class="status" style="font-size:14px;color:var(--soft)">${I('<circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>', 16, 2.2)}Not planned yet${e.isNew ? ' · new venue' : ''}</span>`}
+          </span>
+          <span style="color:var(--muted);padding-top:2px">${ic.chev}</span>
+        </button></li>`; }).join('') : `<li class="card" style="align-items:center;text-align:center"><p class="sub">${st.onlyOpen ? 'Everything on this day is planned.' : 'Nothing on this day.'}</p></li>`}</ul>
+      <button class="btn btn-dashed" data-act="quickAdd">${ic.plus}Add an event from a text message</button>
+      <p class="small" style="text-align:center">Events come from Outlook and Teams. Only the ones you plan are saved.</p>` };
+  }
+
+  function event() {
+    const st = S.cal, e = EVENTS.find((x) => x.id === st.open) || EVENTS[2];
+    const pk = st.planned[e.id], d = DAYS[e.day];
+    const keys = ['default', 'chester', 'manchester', 'night', ...S.custom];
+    const pick = pk || st.pick, lead = leadFor(pick);
+    return {
+      body: `
+      <header class="stack">${backBtn('calendar', 'Calendar')}
+        <div class="stack-sm"><p class="sub">${d[0]} ${d[1]} ${MONTH(d[1])} · ${fmt(e.start)}</p><h1 class="title">${esc(e.title)}</h1><p class="sub">${esc(e.where)} · ${/^added/i.test(e.src) ? e.src.toLowerCase() : 'from ' + e.src}</p></div>
+      </header>
+      ${pk ? `<section class="card" aria-labelledby="pl-h">
+          <p class="status good" id="pl-h" style="font-size:16px;font-weight:700">${ic.ok}Never Late plan added</p>
+          <div class="inset stack-sm" style="padding:16px"><span class="sub">${e.deadline ? 'Leave work at' : 'Start getting ready at'}</span><span class="num" style="font-size:40px;font-weight:700;line-height:1">${fmt(e.start - lead)}</span><span class="sub">Using “${esc(presetLabel(pk))}” · ${e.deadline ? 'there' : 'at your seat'} by ${fmt(e.start - 5)}</span></div>
+        </section>`
+      : `<section class="card" aria-labelledby="add-h">
+          <div class="stack-sm"><h2 id="add-h" class="h2">Add a Never Late plan</h2><p class="small">Pick a preset. You can fine-tune the steps afterwards.</p></div>
+          <div class="wrap" role="group" aria-labelledby="add-h">${keys.map((k) => `<button class="pill" aria-pressed="${k === st.pick}" data-act="calPick" data-k="${k}">${k === st.pick ? ic.tick : ''}${esc(presetLabel(k))}</button>`).join('')}<button class="pill" style="border-style:dashed" data-act="newPreset" data-k="preset">${ic.plus}New preset</button><button class="pill" style="border-style:dashed" data-act="newPreset" data-k="bespoke">${ic.plus}Bespoke, just this once</button></div>
+          <div class="inset stack-sm" style="padding:16px"><span class="sub">You’d start getting ready at</span><span class="num" aria-live="polite" style="font-size:40px;font-weight:700;line-height:1">${fmt(e.start - lead)}</span><span class="sub">at your seat by ${fmt(e.start - 5)} · travel from Google Maps for ${d[0]} at ${fmt(e.start - 60)}</span></div>
+          ${e.isNew ? `<p class="note" style="display:flex;gap:8px;align-items:flex-start"><span style="color:var(--info);margin-top:2px">${ic.pin}</span><span>New venue. We’ll ask about parking, the entrance and the room the evening before.</span></p>` : ''}
+          <button class="btn btn-primary" data-act="calAdd">Add plan</button>
+        </section>`}
+      <section class="stack" aria-labelledby="ev-tl"><div class="top"><h2 id="ev-tl" class="h2">Timeline</h2><span class="small">${pk ? esc(presetLabel(pk)) : 'Preview'}</span></div><ol class="tl card" style="padding:6px 16px;gap:0" aria-labelledby="ev-tl">${eventTimeline(pick, e.start)}</ol>${pk ? '<div style="display:flex;gap:10px"><button class="btn btn-quiet" style="flex:1 1 0" data-act="calCustom">Customise steps</button><button class="btn btn-outline" style="flex:1 1 0" data-act="calRemove">Remove plan</button></div>' : ''}</section>
+      <section class="stack" aria-labelledby="ev-tools">
+        <h2 id="ev-tools" class="h2">Before the day</h2>
+        <button class="link-card" data-go="evening"><span class="badge" style="color:var(--info)">${ic.moon}</span><span class="stack-sm" style="flex:1 1 auto;gap:2px"><span style="font-weight:600">Evening-before prep</span><span class="small">Reminder at 21:00 the night before</span></span><span style="color:var(--muted)">${ic.chev}</span></button>
+      </section>`
+    };
+  }
+
+  // ---------- onboarding ----------
+  const obProgress = (n) => `<div class="stack-sm" style="gap:8px"><p class="small" style="font-weight:600">Step ${n} of 3</p><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px" aria-hidden="true">${[1, 2, 3].map((i) => `<span style="height:4px;border-radius:4px;background:${i <= n ? 'var(--accent)' : 'var(--line)'}"></span>`).join('')}</div></div>`;
+  const obChosen = () => CATS.map((c) => ({ ...c, chosen: c.items.filter((it) => S.ob.sel[it[0]]) }));
+
+  function welcome() {
+    return {
+      body: `
+      <div style="flex:1 1 auto"></div>
+      <div class="stack" style="gap:20px">
+        <span aria-hidden="true" style="width:64px;height:64px;border-radius:20px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center">${I('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/>', 34, 2.6)}</span>
+        <h1 class="title" style="font-size:34px">Get there on time, without the rush</h1>
+        <p class="sub" style="font-size:17px;line-height:1.5">Tell us your usual steps, from getting ready to arriving. You can change them any time.</p>
+        <ul class="stack" style="gap:14px">
+          <li style="display:flex;gap:12px;align-items:flex-start"><span class="badge" style="width:40px;height:40px;color:var(--accent)">${ic.list}</span><span class="stack-sm" style="gap:2px"><span style="font-weight:600">Pick your stages</span><span class="small">Wardrobe, self care, kids and pets, travel and arrival</span></span></li>
+          <li style="display:flex;gap:12px;align-items:flex-start"><span class="badge" style="width:40px;height:40px;color:var(--accent)">${ic.timer}</span><span class="stack-sm" style="gap:2px"><span style="font-weight:600">Check the timings</span><span class="small">Rough guesses are fine. We learn your real times as you go</span></span></li>
+          <li style="display:flex;gap:12px;align-items:flex-start"><span class="badge" style="width:40px;height:40px;color:var(--accent)">${ic.bell}</span><span class="stack-sm" style="gap:2px"><span style="font-weight:600">Get calm prompts</span><span class="small">An alarm or a nudge for each step, at the level you choose</span></span></li>
+        </ul>
+      </div>
+      <div style="flex:1 1 auto"></div>`,
+      footer: `<button class="btn btn-primary" data-go="stages">Build my routine</button><button class="btn-text" data-go="today" style="text-decoration:none">Skip for now</button>`
+    };
+  }
+
+  function stages() {
+    const cats = obChosen();
+    const total = cats.reduce((n, c) => n + c.chosen.reduce((m, it) => m + it[2], 0), 0);
+    const count = cats.reduce((n, c) => n + c.chosen.length, 0);
+    return {
+      body: `
+      <header class="stack">${S.obMain ? backBtn(S.obFrom, 'Cancel') : backBtn('welcome', 'Back')}${obProgress(1)}
+        <div class="stack-sm"><h1 class="title">${S.obMain ? (S.obKind === 'bespoke' ? 'Bespoke list' : 'New preset') : 'What’s in your routine?'}</h1><p class="sub">${S.obMain ? (S.obKind === 'bespoke' ? 'Tick the steps for this event only. It won’t be saved as a preset.' : 'Tick the steps this kind of trip needs. We’ve started you from your usual routine.') : 'Tick the steps you usually take, from getting ready to arriving. You can change these later.'}</p></div>
+      </header>
+      <div class="stack" style="gap:10px">${cats.map((c) => {
+        const open = S.ob.open === c.id;
+        return `<section class="card" style="padding:0;gap:0;overflow:hidden" aria-labelledby="cat-${c.id}">
+          <h2 style="margin:0"><button id="cat-${c.id}" aria-expanded="${open}" aria-controls="list-${c.id}" data-act="obOpen" data-k="${c.id}" style="width:100%;min-height:64px;display:flex;align-items:center;gap:12px;padding:12px 16px;border:none;background:none;text-align:left">
+            <span class="badge" style="width:40px;height:40px;color:var(--accent)">${ic[c.icon]}</span>
+            <span class="stack-sm" style="flex:1 1 auto;gap:2px"><span style="font-size:17px;font-weight:700">${c.label}</span><span class="small">${c.chosen.length ? c.chosen.length + ' chosen' : (c.hint || 'None chosen')}</span></span>
+            <span style="color:var(--muted)">${open ? ic.up : ic.down}</span>
+          </button></h2>
+          ${open ? `<ul id="list-${c.id}" style="padding:0 12px 12px;display:flex;flex-direction:column;gap:6px">${c.hint ? `<li class="small" style="padding:0 4px 4px">${c.hint}</li>` : ''}${c.items.map((it) => {
+            const on = !!S.ob.sel[it[0]];
+            return `<li><button class="check" style="min-height:56px;background:${on ? 'var(--accent-soft)' : 'var(--raised)'}" aria-pressed="${on}" data-act="obToggle" data-k="${it[0]}"><span class="box" aria-hidden="true">${on ? ic.tickDark.replace(/14/g, '18') : ''}</span><span class="lbl" style="font-size:16px;color:var(--fg)">${it[1]}</span><span class="state" aria-hidden="false">${it[2] ? it[2] + ' min' : 'from Maps'}</span></button></li>`;
+          }).join('')}<li><button class="btn btn-dashed" style="width:100%;min-height:48px;font-size:15px" data-act="obOwn">${ic.plus}Add your own</button></li></ul>` : ''}
+        </section>`;
+      }).join('')}</div>`,
+      footer: `<div style="display:flex;align-items:center;gap:14px"><div class="stack-sm" style="flex:1 1 auto;gap:2px"><span class="num" aria-live="polite" style="font-size:17px;font-weight:700">${count} stages</span><span class="small" style="font-size:13px">About ${dur(total)}, plus travel</span></div><button class="btn btn-primary" data-go="routine">Continue</button></div>`
+    };
+  }
+
+  function routine() {
+    const cats = obChosen();
+    const phases = ['Getting ready', 'Leaving', 'Travel', 'Arrival'].map((ph) => {
+      const items = cats.filter((c) => c.phase === ph).flatMap((c) => c.chosen);
+      return { ph, items, mins: items.reduce((n, it) => n + it[2], 0) };
+    });
+    const ready = phases[0].mins, minReady = Math.round((ready * 0.8) / 5) * 5;
+    return {
+      body: `
+      <header class="stack"><div class="top">${backBtn('stages', 'Back')}<button class="chip" data-act="obEdit" data-k="wardrobe">Edit steps</button></div>${obProgress(2)}
+        <div class="stack-sm"><h1 class="title">${S.obMain ? (S.obKind === 'bespoke' ? 'Your bespoke list' : 'Your new preset') : 'Your routine'}</h1><p class="sub">Here’s how your stages fit into a trip. Timings are a starting point and get more accurate after a few trips.</p></div>
+      </header>
+      <section class="card" aria-labelledby="gr-h" style="gap:12px">
+        <div class="top"><h2 id="gr-h" class="h2">Getting ready</h2><span class="num" style="font-weight:700">${dur(minReady)} to ${dur(ready)}</span></div>
+        <p class="small">We’ll plan for ${dur(ready)}, so anything quicker is spare time.</p>
+      </section>
+      <ol class="stack" style="gap:10px">${phases.map((p, i) => `<li class="card" style="gap:10px;padding:16px 18px">
+        <div class="top"><span style="display:flex;align-items:center;gap:10px"><span class="leg-n" aria-hidden="true">${i + 1}</span><span style="font-size:17px;font-weight:700">${p.ph}</span></span><span style="display:flex;align-items:center;gap:8px"><span class="small num">${p.ph === 'Travel' ? 'live from Maps' : dur(p.mins)}</span><button class="chip" style="min-height:44px;padding:0 14px" aria-label="Edit ${p.ph} steps" data-act="obEdit" data-k="${{ 'Getting ready': 'wardrobe', 'Leaving': 'home', 'Travel': 'travel', 'Arrival': 'arrive' }[p.ph]}">Edit</button></span></div>
+        ${p.items.length ? `<ul class="stack" style="gap:0">${p.items.map((it) => `<li style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:15px"><span>${it[1]}</span><span class="small num">${it[2] ? it[2] + ' min' : ''}</span></li>`).join('')}</ul>` : `<p class="small">Nothing chosen yet</p>`}
+      </li>`).join('')}
+        <li class="card" style="gap:6px;padding:16px 18px;flex-direction:row;align-items:center"><span style="color:var(--accent)">${ic.seat.replace(/width="14" height="14"/, 'width="20" height="20"')}</span><span class="stack-sm" style="gap:2px"><span style="font-weight:700">At your seat 5 minutes early</span><span class="small">Always included, so you arrive settled</span></span></li>
+      </ol>
+      ${S.obKind === 'bespoke' ? '' : `<section class="stack" aria-labelledby="name-h">${obProgress(3)}<div class="field"><label id="name-h" for="ob-name">Preset name (tap to change)</label><input id="ob-name" value="${esc(S.ob.name)}" placeholder="e.g. School run"></div>${S.obMain ? '' : '<p class="small">You can make more presets later, like “Night out” or “School run”.</p>'}</section>`}`,
+      footer: `<button class="btn btn-primary" data-act="obSave">${S.obMain ? (S.obKind === 'bespoke' ? 'Use for this event' : 'Save preset') : 'Save and start planning'}</button>`
+    };
+  }
+
+  // ---------- render ----------
+  const app = document.getElementById('app');
+  let lastView = null;
+  function render() {
+    const v = S.view;
+    const out = { calendar, event, welcome, stages, routine, today, alarm, plan, journey, leave, evening, lock, seat, checkin }[v]();
+    const keepScroll = lastView === v ? (document.scrollingElement || document.documentElement).scrollTop : 0;
+    const car = app.querySelector('#carousel'); const keepCar = lastView === v && car ? car.scrollLeft : null;
+    const tabbar = TABS[v] ? `<nav class="tabbar" aria-label="Main">
+      <button class="tab" data-go="today" ${TABS[v] === 'today' ? 'aria-current="page"' : ''}>${ic.clock}Today</button>
+      <button class="tab" data-go="calendar" ${TABS[v] === 'calendar' ? 'aria-current="page"' : ''}>${ic.cal.replace('width="22" height="22"', 'width="24" height="24"')}Calendar</button>
+      <button class="tab" data-go="plan" ${TABS[v] === 'plan' ? 'aria-current="page"' : ''}>${ic.list}Plans</button>
+      <button class="tab" data-go="checkin" ${TABS[v] === 'checkin' ? 'aria-current="page"' : ''}>${ic.chart}History</button></nav>` : '';
+    const lockish = out.cls === 'lock';
+    app.style.setProperty('--tabh', TABS[v] ? '65px' : '0px');
+    app.innerHTML = `<main class="view${lastView !== v ? ' enter' : ''}" style="${lockish ? 'gap:14px;padding-top:12px' : out.cls === 'alarm-view' ? 'gap:14px;padding-top:12px' : ''}">${out.body}</main>${out.footer ? `<div class="footer">${out.footer}</div>` : ''}${tabbar}${out.overlay || ''}${S.toast ? `<div class="toast" role="status">${esc(S.toast)}</div>` : ''}`;
+    document.body.style.background = lockish ? '#08080A' : '';
+    app.style.background = lockish ? '#08080A' : '';
+    (document.scrollingElement || document.documentElement).scrollTop = keepScroll;
+    const nc = app.querySelector('#carousel');
+    if (nc) {
+      if (keepCar !== null) nc.scrollLeft = keepCar;
+      nc.addEventListener('scroll', () => {
+        clearTimeout(nc._t);
+        nc._t = setTimeout(() => { const w = nc.firstElementChild.getBoundingClientRect().width + 12; const i = Math.round(nc.scrollLeft / w); if (i !== S.seat.idx) { S.seat.idx = i; render(); } }, 120);
+      });
+    }
+    if (lastView !== v) { const h = app.querySelector('h1'); if (h) { h.setAttribute('tabindex', '-1'); h.focus({ preventScroll: true }); } }
+    lastView = v;
+  }
+  function scrollToSlide(i) {
+    S.seat.idx = Math.max(0, Math.min(SLIDES.length - 1, i)); render();
+    const nc = app.querySelector('#carousel'); if (nc) { const el = nc.children[S.seat.idx]; nc.scrollTo({ left: el.offsetLeft - 20 }); }
+  }
+
+  let toastTimer;
+  function toast(msg) { S.toast = msg; clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.toast = ''; render(); }, 2400); }
+  function go(v) { S.view = v; if (location.hash.slice(1) !== v) { try { history.replaceState(null, '', '#' + v); } catch (e) {} } render(); }
+
+  const acts = {
+    subToggle: (d) => { S.subDone[d.k] = !S.subDone[d.k]; },
+    obToggle: (d) => { S.ob.sel[d.k] = !S.ob.sel[d.k]; },
+    calDay: (d) => { S.cal.day = +d.n; },
+    calOnly: () => { S.cal.onlyOpen = !S.cal.onlyOpen; },
+    calOpen: (d) => { S.cal.open = d.k; S.cal.pick = 'default'; go('event'); return false; },
+    calPick: (d) => { S.cal.pick = d.k; },
+    calAdd: () => { S.cal.planned[S.cal.open] = S.cal.pick; toast('Plan added'); },
+    calRemove: () => { delete S.cal.planned[S.cal.open]; toast('Plan removed'); },
+    calCustom: () => { const k = S.cal.planned[S.cal.open]; S.plan = fromPreset(PRESETS[k] ? k : 'chester'); go('plan'); return false; },
+    obEdit: (d) => { S.ob.open = d.k; go('stages'); return false; },
+    obOpen: (d) => { S.ob.open = S.ob.open === d.k ? '' : d.k; },
+    obOwn: () => { toast('Type a stage name and how long it takes'); },
+    newPreset: (d) => { S.obKind = d.k; S.obFrom = S.view; S.obMain = S.ob; S.ob = { sel: { ...S.ob.sel }, open: 'wardrobe', name: '' }; go('stages'); return false; },
+    obSave: () => {
+      if (S.obMain) {
+        const one = S.obKind === 'bespoke', n = document.getElementById('ob-name');
+        const name = one ? 'Bespoke list' : (n && n.value.trim()) || 'My preset ' + (S.custom.length + 1);
+        const k = one ? 'b' + (++S.oneOffs) : 'c' + (S.custom.length + 1), ev = S.obFrom === 'plan' ? PRESETS[S.plan.preset].event : 'Your next event';
+        PRESETS[k] = { ...presetFromOb(name, ev), oneOff: one }; PRESET_NAMES[k] = name;
+        LEAD[k] = PRESETS[k].max + PRESETS[k].steps.reduce((m, x) => m + x.mins, 0);
+        S.ob = S.obMain; S.obMain = null;
+        if (!one) S.custom.push(k);
+        if (S.obFrom === 'plan') S.plan = fromPreset(k); else if (one) S.cal.planned[S.cal.open] = k; else S.cal.pick = k;
+        toast(one ? 'Bespoke list added to this event only' : `“${name}” added to your presets`); go(S.obFrom); return false;
+      } const n = document.getElementById('ob-name'); if (n && n.value.trim()) S.ob.name = n.value.trim(); toast(`“${S.ob.name}” saved as your starter preset`); go('today'); return false; },
+    liveStart: () => { S.live = Math.floor(Date.now() / 1000) * 1000; S.tx = {}; S.geo = null; S.openDone = {}; toast('Live demo started: getting ready now'); },
+    liveStop: () => { S.live = null; S.tx = {}; S.geo = null; S.tmore = false; S.openDone = {}; },
+    tMore: () => { S.tmore = !S.tmore; },
+    geoSim: (d) => {
+      const idx = +d.n, at = Date.now();
+      S.geo = { idx, at, why: idx === 2 ? `Left home at ${clock(at)}` : `Near the venue at ${clock(at)}` };
+      S.tmore = false;
+      toast(idx === 2 ? 'You’ve left home. On to Travel.' : 'You’re near the venue. On to the walk in.');
+    },
+    tAdd: (d) => { const cur = todaySteps().find((x) => x.state === 'now'); if (!cur) return; S.tx[cur.i] = (S.tx[cur.i] || 0) + +d.n; S.tmore = false; const st = todaySteps(); toast(st.late ? `Added ${d.n} min · about ${st.late} min late` : `Added ${d.n} min · still on time`); },
+    doneOpen: (d) => { S.openDone[d.n] = !S.openDone[d.n]; },
+    levelMenu: () => { S.levelMenu = !S.levelMenu; },
+    levelPick: (d) => { S.level = d.k; S.levelMenu = false; toast('Prompts set to ' + LEVELS.find((l) => l.id === d.k).label); },
+    quickAdd: () => { toast('Paste a message to pull out the time and place'); },
+    alarmOff: () => { toast('Alarm off. Your plan is still on Today.'); go('today'); return false; },
+    snooze: () => { toast('Snoozed until 07:05'); go('today'); return false; },
+    alarmMore: () => { S.j.sheet = true; go('journey'); return false; },
+    preset: (d) => { S.plan = fromPreset(d.k); },
+    minDown: () => { S.plan.min = Math.max(5, S.plan.min - 5); },
+    minUp: () => { S.plan.min = Math.min(S.plan.max, S.plan.min + 5); },
+    maxDown: () => { S.plan.max = Math.max(S.plan.min, S.plan.max - 5); },
+    maxUp: () => { S.plan.max = Math.min(180, S.plan.max + 5); },
+    addon: (d) => { S.plan.addons[d.k] = !S.plan.addons[d.k]; },
+    legs: () => { S.plan.legsOpen = !S.plan.legsOpen; },
+    up: (d) => { const s = S.plan.steps, i = +d.i; if (i > 0) [s[i - 1], s[i]] = [s[i], s[i - 1]]; },
+    down: (d) => { const s = S.plan.steps, i = +d.i; if (i < s.length - 2) [s[i + 1], s[i]] = [s[i], s[i + 1]]; },
+    rm: (d) => { S.plan.steps.splice(+d.i, 1); },
+    addStep: () => { S.plan.added++; S.plan.steps.splice(Math.max(0, S.plan.steps.length - 1), 0, { name: 'New step ' + S.plan.added, mins: 5 }); },
+    save: () => { toast('Plan saved'); go('today'); return false; },
+    openSheet: () => { S.j.sheet = true; },
+    closeSheet: () => { S.j.sheet = false; S.j.extra = 0; S.j.draft = false; },
+    closeSheetBg: (d, e) => { if (e.target.classList.contains('scrim')) { S.j.sheet = false; S.j.extra = 0; S.j.draft = false; } else return false; },
+    applyExtra: () => { S.j.sheet = false; toast(S.j.extra > 10 ? 'Plan updated · new seat time 10:10' : 'Plan updated · still on time'); },
+    extra: (d) => { S.j.extra = +d.n; S.j.draft = false; },
+    draft: () => { S.j.draft = !S.j.draft; },
+    copy: () => { const t = document.getElementById('draft-text'); const txt = t ? t.textContent : ''; try { navigator.clipboard.writeText(txt).then(() => { toast('Message copied'); render(); }, () => {}); } catch (e) {} return false; },
+    level: (d) => { S.level = d.k; },
+    tick: (d) => { S.leave[d.k] = !S.leave[d.k]; },
+    eve: (d) => { S.eve[d.k] = !S.eve[d.k]; },
+    eveDone: () => { toast('Saved. Sleep well'); go('today'); return false; },
+    left: () => { const missing = CHECKLIST.filter((c) => !S.leave[c.id]).length; if (missing) toast(`${missing} items unticked. We’ll check on the way`); go('lock'); return false; },
+    lockMore: () => { S.lock.more = !S.lock.more; },
+    lockExtra: (d) => { S.lock.extra = S.lock.extra === +d.n ? 0 : +d.n; },
+    cycle: () => { const i = LEVELS.findIndex((l) => l.id === S.level); S.level = LEVELS[(i + 1) % 3].id; },
+    pick: (d) => { S.seat.picked = +d.i; },
+    slidePrev: () => { scrollToSlide(S.seat.idx - 1); return false; },
+    slideNext: () => { scrollToSlide(S.seat.idx + 1); return false; },
+    outcome: (d) => { S.c.outcome = d.k; S.c.accepted = ''; S.c.dismissed = false; },
+    why: (d) => { S.c.why = d.k; S.c.accepted = ''; S.c.dismissed = false; },
+    cause: (d) => { S.c.cause = d.k; S.c.accepted = ''; S.c.dismissed = false; },
+    accept: () => { S.c.accepted = 'time'; },
+    acceptPrep: () => { S.c.accepted = 'prep'; },
+    dismiss: () => { S.c.dismissed = true; },
+    feel: (d) => { S.c.feel = +d.n; },
+    finish: () => { toast('Thanks. Check-in saved'); go('today'); return false; }
+  };
+
+  app.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-go],[data-act]');
+    if (!el || el.disabled) return;
+    if (el.dataset.go) { if (el.dataset.go !== 'journey') S.j.sheet = false; go(el.dataset.go); return; }
+    const fn = acts[el.dataset.act];
+    if (fn && fn(el.dataset, e) !== false) render();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.j.sheet) { acts.closeSheet(); render(); } });
+  // live countdown: update numbers every second, re-render when a step changes
+  let lastActive = null;
+  setInterval(() => {
+    if (!S.live || S.view !== 'today') return;
+    const now = Date.now();
+    document.querySelectorAll('[data-cd]').forEach((el) => { el.textContent = mmss(+el.dataset.cd - now); });
+    document.querySelectorAll('[data-bar]').forEach((el) => { const [a, b] = el.dataset.bar.split('|').map(Number); el.style.width = Math.min(100, ((now - a) / (b - a)) * 100) + '%'; });
+    const act = todaySteps().findIndex((x) => x.state === 'now');
+    if (lastActive !== null && act !== lastActive) { if (act >= 0) toast('Now: ' + TODAY_STEPS[act][0].split(' · ')[0]); render(); }
+    lastActive = act;
+  }, 1000);
+  function fromHash() { const h = location.hash.slice(1); S.view = VIEWS.includes(h) ? h : 'welcome'; render(); }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
+</html>
