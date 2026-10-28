@@ -368,6 +368,7 @@ h1, h2 { text-wrap: balance; }
   // ---------- screens ----------
   const TODAY_STEPS = [['Getting ready', 60], ['Leave the house', 10], ['Travel · taxi, then train', 86], ['Walk to the venue', 10], ['Check in and find your seat', 9], ['At your seat · 5 minutes to yourself', 5]];
   const clock = (ms) => { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  const hms = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':'); };
   const mmss = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
   function todaySteps() {
     // sample day starts 07:00; live mode starts the first step at the moment you tapped
@@ -577,10 +578,13 @@ h1, h2 { text-wrap: balance; }
           <button class="btn btn-primary" data-act="${extra ? 'applyExtra' : 'closeSheet'}">${extra ? 'Update my plan' : 'Cancel'}</button>
         </section>
       </div>`;
+    // demo clock: 22 min left when the screen first opens, then counts down for real
+    if (!S.j.base) S.j.base = Date.now() + (leave - now - extra) * 60000;
+    const jEnd = S.j.base + extra * 60000;
     const subs = CATS.filter((c) => c.phase === 'Getting ready').flatMap((c) => c.items).filter((it) => S.ob.sel[it[0]]);
     const nowCard = `<section class="card" aria-label="Now: Getting ready" style="padding:18px;gap:12px;background:var(--accent-soft);border:1.5px solid var(--accent)"><div class="top"><h2 style="font-size:20px;font-weight:700">Getting ready</h2><span class="eyebrow" style="color:var(--accent)">Now</span></div>
         <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
-          <div class="stack-sm" style="gap:4px"><span class="num" style="font-size:52px;line-height:1;font-weight:700;letter-spacing:-1.5px;white-space:nowrap">${leave - now}<span style="font-size:32px;letter-spacing:-0.5px"> mins left</span></span><span class="sub">Leave at <strong class="num" style="color:var(--fg)">${fmt(leave)}</strong></span></div>
+          <div class="stack-sm" style="gap:4px"><span class="num" style="font-size:52px;line-height:1;font-weight:700;letter-spacing:-1.5px;white-space:nowrap"><span data-cd="${jEnd}" data-fmt="hms">${hms(jEnd - Date.now())}</span><span style="font-size:20px;letter-spacing:0;font-weight:600;color:var(--soft)"> left</span></span><span class="sub">Leave at <strong class="num" style="color:var(--fg)">${fmt(leave)}</strong></span></div>
         </div>
         <div class="bar" style="background:var(--card)" aria-hidden="true"><span style="width:${pct}%"></span></div>
         ${statusLine(late, late ? `About ${lateBy} min late · at your seat by ${seat}` : `On track · at your seat by ${seat}`)}
@@ -1039,8 +1043,9 @@ h1, h2 { text-wrap: balance; }
   // live countdown: update numbers every second, re-render when a step changes
   let lastActive = null;
   setInterval(() => {
-    if (!S.live || S.view !== 'today') return;
     const now = Date.now();
+    if (S.view === 'journey') { document.querySelectorAll('[data-cd]').forEach((el) => { el.textContent = hms(+el.dataset.cd - now); }); return; }
+    if (!S.live || S.view !== 'today') return;
     document.querySelectorAll('[data-cd]').forEach((el) => { el.textContent = mmss(+el.dataset.cd - now); });
     document.querySelectorAll('[data-bar]').forEach((el) => { const [a, b] = el.dataset.bar.split('|').map(Number); el.style.width = Math.min(100, ((now - a) / (b - a)) * 100) + '%'; });
     const act = todaySteps().findIndex((x) => x.state === 'now');
