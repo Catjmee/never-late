@@ -655,7 +655,7 @@ h1, h2 { text-wrap: balance; }
       <div class="clock"><p style="font-size:19px;font-weight:600;color:var(--soft)">Thursday 30 October</p><p class="big num">08:41</p><p class="small" style="margin-top:6px">Preview of your lock screen</p></div>
       <div style="flex:1 1 auto"></div>
       <section class="card" aria-label="Neverlate live activity" style="border-radius:28px;padding:18px;gap:14px">
-        <div class="top"><span class="eyebrow" style="display:flex;align-items:center;gap:8px"><span aria-hidden="true" style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center">${I('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/>', 14, 3)}</span>Neverlate</span><span class="small" style="font-size:13px">Workshop · 10:00</span></div>
+        <div class="top"><span class="eyebrow" style="display:flex;align-items:center;gap:8px"><span aria-hidden="true" style="width:22px;height:22px;border-radius:7px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center">${I('<ellipse cx="12" cy="3.4" rx="7" ry="1.6"/><circle cx="12" cy="14.6" r="6.6"/><path d="M12 11.2v3.4l2.2 1.5"/>', 14, 3)}</span>Neverlate</span><span class="small" style="font-size:13px">Workshop · 10:00</span></div>
         <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px"><div class="stack-sm" style="gap:2px"><span style="font-size:22px;font-weight:700">On the train</span><span style="font-size:15px;color:var(--soft)">Arrives Manchester 09:36</span></div><span class="num" style="font-size:28px;font-weight:700">55<span class="small" style="font-size:15px;font-weight:600"> min</span></span></div>
         <ol class="steps5" aria-label="Progress">${steps.map((s) => `<li class="${s[1]}"><span class="mk" aria-hidden="true">${s[1] === 'd' ? ic.tickDark : ''}</span>${s[0]}<span class="sr">${s[1] === 'd' ? ', done' : s[1] === 'n' ? ', now' : ', to come'}</span></li>`).join('')}</ol>
         ${statusLine(late, status)}
@@ -863,7 +863,7 @@ ${mode === 'year' ? '' : `      <div class="top"><h2 class="h2">${d[2] ? d[2] + 
       body: `
       <div style="flex:1 1 auto"></div>
       <div class="stack" style="gap:20px">
-        <span aria-hidden="true" style="width:64px;height:64px;border-radius:20px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center">${I('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/>', 34, 2.6)}</span>
+        <span aria-hidden="true" style="width:64px;height:64px;border-radius:20px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center">${I('<ellipse cx="12" cy="3.4" rx="7" ry="1.6"/><circle cx="12" cy="14.6" r="6.6"/><path d="M12 11.2v3.4l2.2 1.5"/>', 34, 2.6)}</span>
         <h1 class="title" style="font-size:34px">Get there on time, without the rush</h1>
         <p class="sub" style="font-size:17px;line-height:1.5">Tell us your usual steps, from getting ready to arriving. You can change them any time.</p>
         <ul class="stack" style="gap:14px">
